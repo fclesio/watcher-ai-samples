@@ -1,0 +1,633 @@
+{
+  "metadata" : {
+    "name" : "watcher-ai-core-ml",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "23FB6BAF8CFD4EE78EE930D6B1940FEA"
+    },
+    "cell_type" : "markdown",
+    "source" : "First you'll need to load the MLLib libraries that will be used for this notebook. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "A12362C48AF241148DA9EACBCEB3B345"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.mllib.regression.LabeledPoint\nimport org.apache.spark.mllib.linalg.Vectors\nimport org.apache.spark.mllib.feature.StandardScaler\nimport org.apache.spark.mllib.tree.DecisionTree\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\nimport org.apache.spark.mllib.regression.LinearRegressionModel\nimport org.apache.spark.mllib.regression.LinearRegressionWithSGD\nimport org.apache.spark.mllib.regression.LassoModel\nimport org.apache.spark.mllib.regression.LassoWithSGD\nimport org.apache.spark.mllib.regression.RidgeRegressionModel\nimport org.apache.spark.mllib.regression.RidgeRegressionWithSGD",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "import org.apache.spark.mllib.regression.LabeledPoint\nimport org.apache.spark.mllib.linalg.Vectors\nimport org.apache.spark.mllib.feature.StandardScaler\nimport org.apache.spark.mllib.tree.DecisionTree\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\nimport org.apache.spark.mllib.regression.LinearRegressionModel\nimport org.apache.spark.mllib.regression.LinearRegressionWithSGD\nimport org.apache.spark.mllib.regression.LassoModel\nimport org.apache.spark.mllib.regression.LassoWithSGD\nimport org.apache.spark.mllib.regression.RidgeRegressionModel\nimport org.apache.spark.mllib.regression.RidgeRegressionWithSGD\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 1
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C3CEB6357A2F49EA8A4413754F7E1581"
+    },
+    "cell_type" : "markdown",
+    "source" : "After that we'll inform where is the root directory of Spark.\n\nIn the variable `ROOT_DIR` you'll need to put the path of Spark installation, like: `val ROOT_DIR = \"users/myname/spark-notebook-install-folder\"`"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B6C48BF834BB4A818A57E8C2F236965D"
+    },
+    "cell_type" : "code",
+    "source" : "val ROOT_DIR = \"/Users/flavio.clesio/Desktop/spark-notebook-0.6.3-scala-2.10.5-spark-1.6.0-hadoop-2.6.0-with-hive-with-parquet/notebooks/spark-mllib-sample/spark-notebook-resources\"",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "ROOT_DIR: String = /Users/flavio.clesio/Desktop/spark-notebook-0.6.3-scala-2.10.5-spark-1.6.0-hadoop-2.6.0-with-hive-with-parquet/notebooks/spark-mllib-sample/spark-notebook-resources\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "32463C98591F473487D4AED8F6644C62"
+    },
+    "cell_type" : "markdown",
+    "source" : "Now we'll create the function called `buildLabelValue`. This function will get the fourth feature in our array (# of success) and apply a log function to transform this feature. \n\nThis will be the target (or dependent) variable. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "EB2E71FCC58A449BB8D37C36BEA75CCA"
+    },
+    "cell_type" : "code",
+    "source" : "def buildLabelValue(list: List[Double]) : Double = {\n  // index = 4 is the number of success of the hour, that is what we want to predict\n  return if (list(4) != 0.0) Math.log(list(4)) else 0.0\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildLabelValue: (list: List[Double])Double\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 3
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C5C576688E9747198088C764C028FFF4"
+    },
+    "cell_type" : "markdown",
+    "source" : "The next function called `buildFeatures` will get all features and remove the feature that indicates the number of success (index = 4). \n\nThis will be the features (independent variables) that we'll use in training/testing set.  "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "EBF6DDEF48D64BA384F8C331B4798BC1"
+    },
+    "cell_type" : "code",
+    "source" : "def buildFeatures(list: List[Double]) : List[Double] = {\n   // remove the index 4, which means the number of success\n   return list.patch(4, Nil, 1)\n}\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildFeatures: (list: List[Double])List[Double]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 4
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "BEA04EAE6F704CDD842030794022ED13"
+    },
+    "cell_type" : "markdown",
+    "source" : "Now in the `rdd` we'll put the path of our rdd file. We already made the whole conversion from `csv` file to `rdd` for simplicity. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "5396E850F5514A1188622F94AF5B47DE"
+    },
+    "cell_type" : "code",
+    "source" : "// reading pre processed dataset\nval rdd = sc.objectFile[List[Double]](ROOT_DIR +\"/rdd-processed\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "rdd: org.apache.spark.rdd.RDD[List[Double]] = MapPartitionsRDD[1] at objectFile at <console>:71\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 5
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "DB8F07029A3E4694836941BA4E794B25"
+    },
+    "cell_type" : "markdown",
+    "source" : "The `labelSet` variable will store the `label` object (that contains the values of # success) and the variable `features` (that contains all features that will be used to build the models).\n\nAfter this, we'll construct the `labelpoint` with these arrays. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "A87591AAC2A444748074D5B24B9B9C8D"
+    },
+    "cell_type" : "code",
+    "source" : "// building the LabelPoint, using success as Label\nval labelSet = rdd.map{l => val label = buildLabelValue(l)\n                            val features = buildFeatures(l)\n                            LabeledPoint(label, Vectors.dense(features.toArray))}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "labelSet: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[2] at map at <console>:77\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 6
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "A74E20242417413C86C6301DDE080E80"
+    },
+    "cell_type" : "markdown",
+    "source" : "In this chunk 3 variables are constructed to split data into training and test. There are:\n\n`splits` are the variable where is the size of the training and testing sampling\n\n`traning` will receive the first value of array of `splits` (70% of the data)\n\n`test` will receive the second value of array of `splits` (30% of the data)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "F91ECF92D97844BD85155FC9BD33924D"
+    },
+    "cell_type" : "code",
+    "source" : "val splits = labelSet.randomSplit(Array(0.70, 0.30), seed = 13L)\nval training = splits(0)\nval test = splits(1)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "splits: Array[org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]] = Array(MapPartitionsRDD[3] at randomSplit at <console>:78, MapPartitionsRDD[4] at randomSplit at <console>:78)\ntraining: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[3] at randomSplit at <console>:78\ntest: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[4] at randomSplit at <console>:78\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 7
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "9F7E2A6F58AF49F89E1E768270E75A12"
+    },
+    "cell_type" : "markdown",
+    "source" : "Now let's see the sample of our training set. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "416CDA3EFCB04173B2550F429A15AA96"
+    },
+    "cell_type" : "code",
+    "source" : "println(\"Training set Label sample:\" + training.take(1).mkString(\"\"))",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "Training set Label sample:(11.02587681986334,[4.0,17.0,3.0,2259.309523809524,2475165.2857142854,94936.71428571429,2631545.714285714])\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 8
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "28D6A72405F540E3813876882231A721"
+    },
+    "cell_type" : "markdown",
+    "source" : "We'll build a normalizer function function called `normTrainingSet`. \n\nThe main task of this function is apply a `StandardScaler` over all features of the map to put all values of the features in the range."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "DB60C41984F64A7794A2E764342C84F8"
+    },
+    "cell_type" : "code",
+    "source" : "def normTrainingSet(rdd:RDD[LabeledPoint]) : scala.collection.immutable.Map[Double, RDD[LabeledPoint]] = {\n  \n  // StandardScaler for data normalization\n  val scaler = new StandardScaler(withMean = false, withStd = true)\n                   .fit(rdd.map(x => x.features))\n  \n  // split data by carrier id\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  \n  // return (Double, Some(RDD))\n  return range.map{idx => \n                  val trainingSet = rdd.filter(l => l.features.apply(0) == idx)\n                                       .map(x => LabeledPoint(x.label, scaler.transform(x.features)))\n                 (idx, trainingSet)\n            }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "normTrainingSet: (rdd: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint])scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 9
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C040A23F0F654EED8BBD8AACACD8F7D6"
+    },
+    "cell_type" : "markdown",
+    "source" : "In this function called `buildTrainingSet` we build and filter the training set map of features. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "3BFC99F7167448F08DC960418C69DA33"
+    },
+    "cell_type" : "code",
+    "source" : "def buildTrainingSet(rdd:RDD[LabeledPoint]) : scala.collection.immutable.Map[Double, RDD[LabeledPoint]] = {\n\n  // split data by carrier id\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  \n  // return (Double, Some(RDD))\n  return range.map{idx => \n                  val trainingSet = rdd.filter(l => l.features.apply(0) == idx)\n                 (idx, trainingSet)\n            }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildTrainingSet: (rdd: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint])scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 10
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "F79823CBA7E24C7A80ABC13057A32A62"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Training Models\n\nIn this section we'll build and train all models by carrier_id.\n\n#### Linear Regression with Stocastic Gradient Descent\n\nIn `buildSGDModelMap` function we train our data using Linear Regression with Stocastic Gradient Descent algorithm. \n\nThe number of interations of SGD (`numIterations`) will be 100 and the step size of optimization will be 0.1 (`setStepSize`)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B1B545BA7BB149F28B1884C2BB88BB28"
+    },
+    "cell_type" : "code",
+    "source" : "def buildSGDModelMap(rdd:scala.collection.immutable.Map[Double, RDD[LabeledPoint]]) : scala.collection.immutable.Map[Double, LinearRegressionModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  // return (Double, Some(RDD))\n  return range.map{idx => \n                     // Building the model\n                    val numIterations = 100\n                    var regression = new LinearRegressionWithSGD().setIntercept(true)\n                    regression.optimizer.setStepSize(0.1)\n                    regression.optimizer.setNumIterations(numIterations)\n                     \n                    // get dataset\n                    val dataset = rdd.get(idx).orNull;\n                    if (dataset == null) println(\"ERROR: data set is null for carrier:\" + idx)\n                    (idx, regression.run(dataset))\n                  }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildSGDModelMap: (rdd: scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]])scala.collection.immutable.Map[Double,org.apache.spark.mllib.regression.LinearRegressionModel]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 11
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "025BEDCE5C864D028266F634F1B04840"
+    },
+    "cell_type" : "markdown",
+    "source" : "#### Ridge Regression with Stocastic Gradient Descent\n\nIn `buildRidgeRegressionSGDModelMap` function we train our data using Ridge Regression with Stocastic Gradient Descent algorithm. \n\nThe number of interations of SGD (`numIterations`) will be 100 and the step size of optimization will be 0.1 (`setStepSize`)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C3B042F9B26F451A8F2B60EA68D5EC20"
+    },
+    "cell_type" : "code",
+    "source" : "def buildRidgeRegressionSGDModelMap(rdd:scala.collection.immutable.Map[Double, RDD[LabeledPoint]]) : scala.collection.immutable.Map[Double, RidgeRegressionModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  // return (Double, Some(RDD))\n  return range.map{idx => \n                     // Building the model\n                    val numIterations = 100\n                    var regression = new RidgeRegressionWithSGD().setIntercept(true)\n                    regression.optimizer.setStepSize(0.1)\n                    regression.optimizer.setNumIterations(numIterations)\n                     \n                    // get dataset\n                    val dataset = rdd.get(idx).orNull; \n                    (idx, regression.run(dataset))\n                  }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildRidgeRegressionSGDModelMap: (rdd: scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]])scala.collection.immutable.Map[Double,org.apache.spark.mllib.regression.RidgeRegressionModel]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 12
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C3711C5D21BB48898322AE8CABB87A9B"
+    },
+    "cell_type" : "markdown",
+    "source" : "#### Lasso Regression with Stocastic Gradient Descent\n\nIn `buildLassoSGDModelMap` function we train our data using Lasso Regression with Stocastic Gradient Descent algorithm. \n\nThe number of interations of SGD (`numIterations`) will be 100 and the step size of optimization will be 0.1 (`setStepSize`)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "38EF464E4EF54170816BC37157BBE158"
+    },
+    "cell_type" : "code",
+    "source" : "def buildLassoSGDModelMap(rdd:scala.collection.immutable.Map[Double, RDD[LabeledPoint]]) : scala.collection.immutable.Map[Double, LassoModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  // return (Double, Some(RDD))\n  return range.map{idx => \n                     // Building the model\n                    val numIterations = 100\n                    var regression = new LassoWithSGD().setIntercept(true)\n                    regression.optimizer.setStepSize(0.1)\n                    regression.optimizer.setNumIterations(numIterations)\n                     \n                    // get dataset\n                    val dataset = rdd.get(idx).orNull; \n                    (idx, regression.run(dataset))\n                  }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildLassoSGDModelMap: (rdd: scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]])scala.collection.immutable.Map[Double,org.apache.spark.mllib.regression.LassoModel]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 13
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "6BDB93E66E7748F6B4AE576A25F70558"
+    },
+    "cell_type" : "markdown",
+    "source" : "#### Decision Regression Tree \n\nIn `buildDecTreeModelMap` function we train our data using Regression Tree algorithm. \n\n`impurity` is the criteria of the split of the tree   (`val impurity = \"variance\"`)\n\n`maxDepth` is how depth will be the tree (`val maxDepth = 7`)\n\n`maxBins` is the maximum set of groups the variable can have (`val maxBins = 32`)"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "89C81F50E03140809415FAE549450CA5"
+    },
+    "cell_type" : "code",
+    "source" : "def buildDecTreeModelMap(rdd:RDD[LabeledPoint]) : scala.collection.immutable.Map[Double, DecisionTreeModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  \n  val categoricalFeaturesInfo = Map[Int, Int]()\n  val impurity = \"variance\"\n  val maxDepth = 7\n  val maxBins = 32\n  \n  // return (Double, Some(RDD))\n  return range.map{idx => \n                   val filteredSet = training.filter(l => l.features.apply(0) == idx)\n                    // building the model\n                   \n                   val model = DecisionTree.trainRegressor(filteredSet, categoricalFeaturesInfo, impurity, maxDepth, maxBins);\n                  (idx, model)\n                  }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildDecTreeModelMap: (rdd: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint])scala.collection.immutable.Map[Double,org.apache.spark.mllib.tree.model.DecisionTreeModel]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 14
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "84D1173FB77642B89951BC2135F23063"
+    },
+    "cell_type" : "markdown",
+    "source" : "#### Validation\n\nNow we'll made a simple calculation using a function (`printStats`) where the error (deviation) more than `0.35` we'll assume this as a error. \n\nSome evaluation metrics are in this chunk for comparison between them. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "6B338D0628034491960E1E0CB282AEB9"
+    },
+    "cell_type" : "code",
+    "source" : "def printStats(computedRdd:RDD[(Double, Double)]) = {\n    val dtTotalCorrect = computedRdd.map{ case (v, p) =>  \n                                       val error = (math.exp(v) - math.exp(p))/math.exp(v);\n                                       if (error > 0.35) 0 else 1;\n                                 }.sum()\n\n    val dtAccuracy = dtTotalCorrect / computedRdd.count\n    val MeanSquaredError = computedRdd.map{ case (v, p) => math.pow(v - p, 2) }.mean()\n    val RootMeanSquaredError = math.sqrt(MeanSquaredError)\n    val MeanAbsoluteError = computedRdd.map{ case (v, p) => math.abs(v - p)/p }.mean()\n\n    println(\"Model Accuracy (ACC) = \" + dtAccuracy)\n    println(\"Mean Squared Error (MSE) = \" + MeanSquaredError)\n    println(\"Root Mean Squared Error (RMSE) = \" + RootMeanSquaredError)\n    println(\"Mean Absolute Error (MAE) = \" + MeanAbsoluteError)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "printStats: (computedRdd: org.apache.spark.rdd.RDD[(Double, Double)])Unit\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 20
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "1401D94898024E37843BA9A461F8EA18"
+    },
+    "cell_type" : "markdown",
+    "source" : "The next chunk we'll normalize the data and using the traning set in each model. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "935F73CB61DD4AA89EE2BE7ADEA85B29"
+    },
+    "cell_type" : "code",
+    "source" : "val mapTraining = normTrainingSet(training)\nval mapTest = normTrainingSet(test)\nval mapDecTreeModel = buildDecTreeModelMap(training)\nval mapSGDModel = buildSGDModelMap(mapTraining)\nval mapLassoSGDModel = buildLassoSGDModelMap(mapTraining)\nval mapRidgeRegressionSGDModel = buildRidgeRegressionSGDModelMap(mapTraining)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "mapTraining: scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]] = Map(1.0 -> MapPartitionsRDD[5136] at map at <console>:84, 2.0 -> MapPartitionsRDD[5138] at map at <console>:84, 4.0 -> MapPartitionsRDD[5140] at map at <console>:84, 5.0 -> MapPartitionsRDD[5142] at map at <console>:84)\nmapTest: scala.collection.immutable.Map[Double,org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]] = Map(1.0 -> MapPartitionsRDD[5146] at map at <console>:84, 2.0 -> MapPartitionsRDD[5148] at map at <console>:84, 4.0 -> MapPartitionsRDD[5150] at map at <console>:84, 5.0 -> MapPartitionsRDD[5152] at map at <console>:84)\nmapDecTreeModel: scala.collection.immutable.Map[Double,org.apache.spark.mllib.tree.model.DecisionTreeModel]..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 22
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "003C943B287E4D0285247CEF028BC638"
+    },
+    "cell_type" : "markdown",
+    "source" : "After training let's see the coeficients of each model. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab163570158-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "0F5D4D53210E49C18B22F8FCBE92BD71"
+    },
+    "cell_type" : "code",
+    "source" : "val range = List(1.0, 2.0, 4.0, 5.0)\nrange.map{idx =>\n   println(\"Linear Model with SGD - carrier:\" + idx.toInt + \", weights:\" + mapSGDModel(idx).weights)\n}\n\nrange.map{idx =>\n   println(\"Lasso with SGD Model - carrier:\" + idx.toInt + \", weights:\" + mapLassoSGDModel(idx).weights)\n}\n\nrange.map{idx =>\n   println(\"Ridge Regression with SGD Model - carrier:\" + idx.toInt + \", weights:\" + mapRidgeRegressionSGDModel(idx).weights)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "Linear Model with SGD - carrier:1, weights:[1.3871880079450831,0.7072896656899542,1.6305490174089032,0.4746376917286505,0.405403457634909,0.7819365565635006,0.4966702187554236]\nLinear Model with SGD - carrier:2, weights:[1.7562010526302034,0.6465783613164323,1.0108841397647923,2.081216195379988,0.10903222166989635,-0.013070046457502774,0.11316187073348626]\nLinear Model with SGD - carrier:4, weights:[1.7051200730464973,0.8741839467706362,0.05341691294898494,0.8859029933430213,0.016313830484611765,-0.0026742340124832533,0.01936459617659429]\nLinear Model with SGD - carrier:5, weights:[2.3370052585383356,0.6115634351176381,0.22419336218850489,0.3080100488920764,0.07971948939763093,0.05040468738183591,0.08732110158154315]\nLasso with SGD Model - carrier:1, weights:[1.376248658096223,0.7108280128488867,1.635063514604484,0.4710891888057136,0.3982905582331491,0.7848027376065521,0.49171570439470824]\nLasso with SGD Model - carrier:2, weights:[1.7517533636180067,0.6459673884078323,1.014031808859943,2.0788577666364216,0.10998268335148031,-0.008115159637031258,0.11391673535923734]\nLasso with SGD Model - carrier:4, weights:[1.7059074287910458,0.8735611442919089,0.05247251960997947,0.8899970022709839,3.684613958837858E-4,-0.001903051615505342,0.003478176822126919]\nLasso with SGD Model - carrier:5, weights:[2.343850830144174,0.614080998861208,0.22556443865469472,0.29865867095684234,0.06512768989545674,0.03531576176311263,0.0730658987111152]\nRidge Regression with SGD Model - carrier:1, weights:[1.3800505571072983,0.7106918806850675,1.6322162828060278,0.47878358837442175,0.40649776396406934,0.7860081397953711,0.49808950176125366]\nRidge Regression with SGD Model - carrier:2, weights:[1.7501633424902718,0.6472846944359791,1.0167217172366252,2.0734468906318955,0.11365405739523464,-0.01275099374234536,0.11770483590733956]\nRidge Regression with SGD Model - carrier:4, weights:[1.7007270705757545,0.8739577420839975,0.059651809468896935,0.889975411720232,0.016669504576221045,-0.0024683812859312543,0.019720396859491535]\nRidge Regression with SGD Model - carrier:5, weights:[2.334041771797184,0.6141338455825188,0.23111849311153868,0.31004609767618796,0.08039267336780832,0.05111938539167833,0.08804756460390432]\nrange: List[Double] = List(1.0, 2.0, 4.0, 5.0)\nres26: List[Unit] = List((), (), (), ())\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon8db807e775596f649c8f86c923685038&quot;,&quot;dataInit&quot;:[{},{},{},{}],&quot;genId&quot;:&quot;163570158&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tabs'], \n      function(playground, _magictabs) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictabs,\n    \"o\": {}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n        <div>\n          <ul class=\"nav nav-tabs\" id=\"ul163570158\"><li>\n                <a href=\"#tab163570158-0\"><i class=\"fa fa-table\"/></a>\n              </li><li>\n                <a href=\"#tab163570158-1\"><i class=\"fa fa-cubes\"/></a>\n              </li></ul>\n\n          <div class=\"tab-content\" id=\"tab163570158\"><div class=\"tab-pane\" id=\"tab163570158-0\">\n              <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon630c9cc5a0a0132838d5eef65052bce1&quot;,&quot;dataInit&quot;:[{},{},{},{}],&quot;genId&quot;:&quot;2085597200&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tableChart'], \n      function(playground, _magictableChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictableChart,\n    \"o\": {\"headers\":[],\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n        <p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon910df8662559955a14a7b12f819b2fbf&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> <span style=\"color:red\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon85f1f804948a617eb3ef9ea0239bb014&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n        <div>\n        </div>\n      </div></div>\n              </div><div class=\"tab-pane\" id=\"tab163570158-1\">\n              <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon5d7d6144455b30593de53df616665656&quot;,&quot;dataInit&quot;:[{},{},{},{}],&quot;genId&quot;:&quot;1244807594&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/pivotChart'], \n      function(playground, _magicpivotChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magicpivotChart,\n    \"o\": {\"width\":600,\"height\":400,\"derivedAttributes\":{},\"extraOptions\":{}}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n        <p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anondba568481e70c28ae15c0092aabc34dd&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> <span style=\"color:red\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon0f7e7118f8e170bfe94f0a6ea3d7c25e&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n        <div>\n        </div>\n      </div></div>\n              </div></div>\n        </div>\n      </div></div>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 23
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "5773559ED0254A16884D8603FED116DB"
+    },
+    "cell_type" : "markdown",
+    "source" : "To see the difference the original value of the feature and the normalized feature, let's run the snippet below. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "8321E55641044F6B849A6F651B60C813"
+    },
+    "cell_type" : "code",
+    "source" : "println(\"features: \" + labelSet.filter(l => l.features.apply(0) == 1.0).take(1)(0))\nprintln(\"normalized features: \" + mapTraining(1.0).take(1)(0))",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "features: (12.51819468541981,[1.0,23.0,4.0,1217.232142857143,2.5579197000000004E7,2144149.5714285714,2.799661085714286E7])\nnormalized features: (12.51819468541981,[0.6268524857806982,3.3277992810094488,2.8831938126240084,1.9765211786235892,1.955909409254753,1.5761758472523948,2.100481657010176])\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 25
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "488D24F7DE5A4A9FA18AF598E4D42662"
+    },
+    "cell_type" : "markdown",
+    "source" : "After training we'll persist (serialize) our model to disk in using the command `mapDecTreeModel`."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "CDD5660DAC544F9096F8EAC4B55821A3"
+    },
+    "cell_type" : "code",
+    "source" : "// persisting  models to disk\nmapDecTreeModel.foreach{case (carrier, model) => \n                          val modelName = \"c\" + carrier.toInt + \"model\"\n                          model.save(sc, ROOT_DIR + \"/trained-models/\" + modelName)\n                       }",
+    "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 26
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "D8B56161C7864FF2AB9C7BC7A46FCD1F"
+    },
+    "cell_type" : "markdown",
+    "source" : "#### Scoring and performance\n\nIn this part, we'll see the performance of every model that we trained before. \n\nThe result will be calculated made some comparison between the expected value (test set) with predicted value.  "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C3E3432BD8DB46B98C83980167F3CD73"
+    },
+    "cell_type" : "code",
+    "source" : "// Evaluate model on test dataset\nval computedSet = mapTest.map { case(idx, dataset) =>\n    dataset.map{point => \n                    val model = mapSGDModel(idx)\n                    val prediction = model.predict(point.features)\n                    (point.label, prediction)\n               }.collect\n}\n\nprintln(\"== Linear Model with SGD ==\")\nval predictionsSGD = sc.parallelize(computedSet.reduce(_++_))\nprintStats(predictionsSGD)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "== Linear Model with SGD ==\nModel Accuracy (ACC) = 0.6025641025641025\nMean Squared Error (MSE) = 2.5150314179088604\nRoot Mean Squared Error (RMSE) = 1.58588505822738\nMean Absolute Error (MAE) = 0.10920991052948577\ncomputedSet: scala.collection.immutable.Iterable[Array[(Double, Double)]] = List(Array((12.190374355335884,12.139852331551037), (12.700349083813945,16.469327242185486), (12.56746046639741,15.226968964757049), (12.469752527709518,12.250639839714857), (12.421885392035078,13.639047164042108), (12.482999046857918,14.189948536066135), (12.711149778336516,16.73680237363055), (12.495963526766769,14.708954595265562), (11.682828564257374,6.174390903368868), (12.725686043453976,12.745852199823743), (12.091325354477682,8.834938720921347), (12.391344607499889,11.665075899521312), (12.309542625250572,7.740979719210886), (12.198406910143145,10.031340391904948), (8.654401150513184,10.304650843507643), (11.75775781881526,8.141603521879325), (12.260306469462808,13.026942833197264), (8.733352408956003,5...."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 27
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "0FC4C411F22B43E198DA068220A551A9"
+    },
+    "cell_type" : "code",
+    "source" : "// Evaluate model on test dataset\nval computedSetLasso = mapTest.map { case(idx, dataset) =>\n    dataset.map{point => \n                    val model = mapLassoSGDModel(idx)\n                    val prediction = model.predict(point.features)\n                    (point.label, prediction)\n               }.collect\n}\n\nprintln(\"== Lasso with SGD Model ==\")\nval predictionsLassoSGD = sc.parallelize(computedSetLasso.reduce(_++_))\nprintStats(predictionsLassoSGD)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "== Lasso with SGD Model ==\nModel Accuracy (ACC) = 0.6025641025641025\nMean Squared Error (MSE) = 2.525538088806356\nRoot Mean Squared Error (RMSE) = 1.589194163343912\nMean Absolute Error (MAE) = 0.10948481405591412\ncomputedSetLasso: scala.collection.immutable.Iterable[Array[(Double, Double)]] = List(Array((12.190374355335884,12.12422126022041), (12.700349083813945,16.4732318089806), (12.56746046639741,15.230970076371765), (12.469752527709518,12.238893525475607), (12.421885392035078,13.640967105172464), (12.482999046857918,14.172006362190938), (12.711149778336516,16.740985268284952), (12.495963526766769,14.712613537110073), (11.682828564257374,6.161807475593536), (12.725686043453976,12.725260942738114), (12.091325354477682,8.82697225408469), (12.391344607499889,11.65513682070716), (12.309542625250572,7.7288178709111985), (12.198406910143145,10.02291136428537), (8.654401150513184,10.301955810630574), (11.75775781881526,8.132102396013053), (12.260306469462808,13.012093787491587), (8.733352408956003,5..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 28
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B1BE26DB00DB46C081B3D96E14770719"
+    },
+    "cell_type" : "code",
+    "source" : "val computedSetRidge = mapTest.map { case(idx, dataset) =>\n    dataset.map{point => \n                    val model = mapRidgeRegressionSGDModel(idx)\n                    val prediction = model.predict(point.features)\n                    (point.label, prediction)\n               }.collect\n}\n\nprintln(\"== Ridge Regression with SGD Model ==\")\nval predictionsRidgeSGD = sc.parallelize(computedSetRidge.reduce(_++_))\nprintStats(predictionsRidgeSGD)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "== Ridge Regression with SGD Model ==\nModel Accuracy (ACC) = 0.5961538461538461\nMean Squared Error (MSE) = 2.542156745748384\nRoot Mean Squared Error (RMSE) = 1.5944142327978585\nMean Absolute Error (MAE) = 0.1102195861513501\ncomputedSetRidge: scala.collection.immutable.Iterable[Array[(Double, Double)]] = List(Array((12.190374355335884,12.131759385360226), (12.700349083813945,16.47629346978164), (12.56746046639741,15.22791342216453), (12.469752527709518,12.242089775308818), (12.421885392035078,13.632310061871706), (12.482999046857918,14.187868918545542), (12.711149778336516,16.745046387943606), (12.495963526766769,14.707533271334828), (11.682828564257374,6.146377124211751), (12.725686043453976,12.746333200871538), (12.091325354477682,8.811606624767256), (12.391344607499889,11.654134133560472), (12.309542625250572,7.719985053962841), (12.198406910143145,10.01316515757362), (8.654401150513184,10.281168720013683), (11.75775781881526,8.118823290267251), (12.260306469462808,13.02533495128117), (8.733352408956003,..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 29
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "32EC1D6E75CB4A39B20456B886E86420"
+    },
+    "cell_type" : "code",
+    "source" : "val labelsAndPredictions = test.map { point =>\n  val carrier = point.features.apply(0)\n  val model = mapDecTreeModel(carrier)\n  val prediction = model.predict(point.features)\n  (point.label, prediction)\n}\n\n\nprintln(\"== Decision Tree Model ==\")\nprintStats(labelsAndPredictions)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "== Decision Tree Model ==\nModel Accuracy (ACC) = 0.9871794871794872\nMean Squared Error (MSE) = 0.02244825496276689\nRoot Mean Squared Error (RMSE) = 0.14982741725988236\nMean Absolute Error (MAE) = 0.006690749311916566\nlabelsAndPredictions: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[7756] at map at <console>:91\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 30
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "FF0B639E9F95461F91BDEEA4597555FD"
+    },
+    "cell_type" : "markdown",
+    "source" : "As we can see, Decision Tree model get the best result with 98% accuracy. So we'll pick this model to put in production. "
+  } ],
+  "nbformat" : 4
+}
