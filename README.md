@@ -16,3 +16,11 @@ To start this notebook in your environment, please follow this steps:
 * Step 3 : Go to the Terminal and inside the folder of Spark and run: ./bin/spark-notebook
 
 * Step 4 : Go to the folder "spark-mllib-sample/spark-notebook-resources/" and open the file called "watcher-ai-core-ml"
+
+All of this code and samples are available to download and test your own ML algorithm with Apache Spark MLlib.
+This content is part of the presentation: Machine learning in practice with Spark MLlib: An intelligent data analyzer, presented at Strata + Hadoop World Singapore 2016
+
+##Autors 
+     Flavio Clésio - flavio.clesio@movile.com
+     J.P. Eiti Kimura  - eiti.kimura@movile.com
+
