@@ -1,9 +1,13 @@
 # watcher-ai-samples
 Datasets, Java code and notebook of Watcher-AI
 
+## Structure
+spark-notebook-resources - the spark notebook file
+watcher-trainer - a Scala project to train and compare ML models
+watcher-ai-samples - a Java application wich uses the trained ML models to predict values
+
 
 To start this notebook in your environment, please follow this steps:
-
 
 * Step 1 : [Download this version of Spark Notebook](http://spark-notebook.io/dl/zip/0.6.3/2.10/1.6.0/2.6.0/true/true)
 
