@@ -1,0 +1,27 @@
+group 'com.movile.sparkmllib'
+version '1.0-SNAPSHOT'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.5'
+  distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.spark:spark-core_2.11:1.6.0'
+    compile 'org.apache.spark:spark-mllib_2.11:1.6.0'
+
+    compile 'org.slf4j:slf4j-api:1.7.18'
+    compile 'ch.qos.logback:logback-classic:1.1.6'
+    compile 'com.github.sheigutn:pushbullet-java-8:1.3.4'
+}
