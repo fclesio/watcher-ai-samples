@@ -1,0 +1,134 @@
+{
+  "metadata" : {
+    "name" : "Linear Regression Trainer",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "# GDG -  Exemplo de Regressão Linear com Árvore de Decisão\n\n### eiti.kimura@movile.com / flavio.clesio@movile.com\n\n## Apresentando o coração da aplicação\n\nEsse notebook demonstra como treinar um modelo de regressão linear com árvore de decisão utilizando Apache Spark e MLlib. Basicamente, temos os dados de entrada, eles são filtrados e utilizados para treinar os modelos, utilizando um dataset rotulado, em seguida, calculamos a capacidade preditiva do modelo."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.mllib.regression.LabeledPoint\nimport org.apache.spark.mllib.linalg.Vectors\nimport org.apache.spark.mllib.feature.StandardScaler\nimport org.apache.spark.mllib.tree.DecisionTree\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\n\nval ROOT_DIR = \"/Users/eiti/spark-ml\"",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "As funções abaixo, servem para processar os dados e montar os dados rotulados + dados de entrada"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "def buildLabelValue(list: List[Double]) : Double = {\n  // index = 4 is the number of success of the hour, that is what we want to predict\n  return if (list(4) != 0.0) Math.log(list(4)) else 0.0\n}\n\ndef buildFeatures(list: List[Double]) : List[Double] = {\n   // remove the index 4, which means the number of success\n   return list.patch(4, Nil, 1)\n}",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Leitura do dataset e aplicação das funções para separar e rotular os dados"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// reading pre processed dataset\nval rdd = sc.objectFile[List[Double]](ROOT_DIR +\"/rdd-processed\")\n\n// building the LabelPoint, using success as Label\nval labelSet = rdd.map{l => val label = buildLabelValue(l)\n                            val features = buildFeatures(l)\n                            LabeledPoint(label, Vectors.dense(features.toArray))}\nlabelSet.take(5).foreach(println)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Separação aleatória dos dados em dataset de testes e de treinamento do modelo.\n\nO data set de testes será usado para testar a capacidade de previsão do modelo usando dados que ele não conhece\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "//Split data into training  and test.\nval splits = labelSet.randomSplit(Array(0.70, 0.30), seed = 13L)\nval training = splits(0)\nval test = splits(1)\n\nprintln(\"Test set Label sample:\" + test.take(1).mkString(\"\"))\nprintln(\"\\nTraining set Label sample:\" + training.take(1).mkString(\"\"))\nprintln()",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Função utilitária para calcular o erro e exibir algumas métricas do modelo já treinado.\n\nPara o cáclulo do erro usamos a métrica do [RMSE](http://tillbergmann.com/blog/python-gradient-descent.html) (Root Mean Squared Error):\n\n\n$$ RMSE = \\sqrt{ \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2} $$"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// prints results\ndef printStats(computedRdd:RDD[(Double, Double)]) = {\n    val dtTotalCorrect = computedRdd.map{ case (v, p) =>  \n                                       val error = (math.exp(v) - math.exp(p))/math.exp(v);\n                                       if (error > 0.20) 0 else 1;\n                                 }.sum()\n\n    val dtAccuracy = dtTotalCorrect / computedRdd.count\n    val MeanSquaredError = computedRdd.map{ case (v, p) => math.pow(v - p, 2) }.mean()\n    val RootMeanSquaredError = math.sqrt(MeanSquaredError)\n\n    println(\"Model Accuracy (ACC) = \" + dtAccuracy)\n    println(\"Mean Squared Error (MSE) = \" + MeanSquaredError)\n    println(\"Root Mean Squared Error (RMSE) = \" + RootMeanSquaredError)\n}",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Função que vai filtrar os dados por operadora e também treinar o modelos. O retorno da função é um mapacontendo o peso da operadora como chave e o modelo treinado como valor"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// build and train model by carrier id\ndef buildDecTreeModelMap(rdd:RDD[LabeledPoint]) : scala.collection.immutable.Map[Double, DecisionTreeModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  \n  val categoricalFeaturesInfo = Map[Int, Int]()\n  val impurity = \"variance\"\n  val maxDepth = 7\n  val maxBins = 30\n  \n  // return (Double, Some(RDD))\n  return range.map{idx => \n                     val filteredSet = training.filter(l => l.features.apply(0) == idx)\n                   \n                     // building the model\n                     val model = DecisionTree.trainRegressor(filteredSet, \n                                                             categoricalFeaturesInfo, impurity, maxDepth, maxBins);\n                     (idx, model)\n                  }.toMap\n}",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// LETS TRAIN THE MODEL ///\nval mapDecTreeModel = buildDecTreeModelMap(training)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Utiliza-se agora o dataset de testes e utiliza-se os modelos treinados para fazer previsões do número de sucessos esperados, para cada operadora, de acordo com os dados de entrada. A resposta dos dados é dada em $ log $.\nAo final executa-se a função *printStats* para imprimir algumas métricas calculadas onde poderemos verificar a acurácia e o erro dos modelos treinados."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// Evaluate model on test instances and compute test error\nval labelsAndPredictions = test.map { point =>\n  val carrier = point.features.apply(0)\n  val model = mapDecTreeModel(carrier)\n  val prediction = model.predict(point.features)\n  (point.label, prediction)\n}\n\nprintln(\"== Decision Tree Model ==\")\nprintStats(labelsAndPredictions)",
+    "outputs" : [ ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Como último passo, os modelos são persistido em disco, no formato do Apache Spark MLLib. Uma das vantagens de gravar o modelo nesse formato é que passam a ser intercambiáveis entre as linguagens: Scala, Java, Python e R."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// persisting mapDecTreeModel models to disk\nmapDecTreeModel.foreach{case (carrier, model) => \n                          val modelName = \"c\" + carrier.toInt + \"model\"\n                          model.save(sc, ROOT_DIR + \"/trained-models/\" + modelName)\n                       }",
+    "outputs" : [ ]
+  } ],
+  "nbformat" : 4
+}
