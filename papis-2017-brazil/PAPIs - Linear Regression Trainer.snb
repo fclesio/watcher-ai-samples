@@ -1,0 +1,230 @@
+{
+  "metadata" : {
+    "name" : "PAPIs - Linear Regression Trainer",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "# PAPIs Connect Conference 2017 SP Brazil\nLatin America's 1st conference on real-world Machine Learning applications\n\n## Training a linear regression with decision tree model\n\n### eiti.kimura@movile.com / flavio.clesio@movile.com\n\n## Presenting the core model of application\n\nThis notebook intent to run on spark-notebook with *Apache Spark version 1.6*\nHere we will show how to train a decision tree with linear regression model, step by step. Basically we have all of the input dataset, it will be filtered and trasformed to a labeled dataset, then the dataset will be used for training and compute the predictive capacity of the model."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.mllib.regression.LabeledPoint\nimport org.apache.spark.mllib.linalg.Vectors\nimport org.apache.spark.mllib.feature.StandardScaler\nimport org.apache.spark.mllib.tree.DecisionTree\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\n\nval ROOT_DIR = \"/Users/eiti/spark-ml\"",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "import org.apache.spark.mllib.regression.LabeledPoint\nimport org.apache.spark.mllib.linalg.Vectors\nimport org.apache.spark.mllib.feature.StandardScaler\nimport org.apache.spark.mllib.tree.DecisionTree\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\nimport org.apache.spark.sql.SQLContext\nROOT_DIR: String = /Users/eiti/spark-ml\nsqlContext: org.apache.spark.sql.SQLContext = org.apache.spark.sql.SQLContext@318bcdf6\nimport sqlContext.implicits._\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "These functions are responsible to rorder a data row and mount and extract a label (what we are trying to predict), as you can see bellow:"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "def buildLabelValue(list: List[Double]) : Double = {\n  // index = 4 is the number of success of the hour, that is what we want to predict\n  return if (list(4) != 0.0) Math.log(list(4)) else 0.0\n}\n\ndef buildFeatures(list: List[Double]) : List[Double] = {\n   // remove the index 4, which means the number of success\n   return list.patch(4, Nil, 1)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildLabelValue: (list: List[Double])Double\nbuildFeatures: (list: List[Double])List[Double]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 4
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Load the entire dataset as an RDD data structure, then the functions are applied to return a LabeledPoint object to be used later for training."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// reading pre processed dataset\nval rdd = sc.objectFile[List[Double]](ROOT_DIR +\"/rdd-processed\")\n\n// building the LabelPoint, using success as Label\nval labelSet = rdd.map{l => val label = buildLabelValue(l)\n                            val features = buildFeatures(l)\n                            LabeledPoint(label, Vectors.dense(features.toArray))}\nlabelSet.take(5).foreach(println)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "(10.566481075391666,[4.0,17.0,3.0,2127.996031746032,3847276.428571428,358080.0,4261071.142857143])\n(10.050815007015261,[2.0,8.0,5.0,354.1666666666667,4.687995066666667E7,861563.5,4.776468883333333E7])\n(9.799598176443865,[4.0,11.0,5.0,1414.611111111111,1592324.5,256088.3333333333,1883265.1666666665])\n(11.741401970770362,[2.0,22.0,1.0,482.4347826086956,9.5480593E7,1288813.4000000001,9.68950748E7])\n(9.649938486453806,[4.0,7.0,5.0,1213.6458333333333,492789.6666666666,83499.83333333333,606587.4999999999])\nrdd: org.apache.spark.rdd.RDD[List[Double]] = MapPartitionsRDD[3] at objectFile at <console>:71\nlabelSet: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[4] at map at <console>:74\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 6
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "In this part we are showing how to split your dataset in **training** and **test**.\nThe **test** dataset will be used to check if trained model is able to predict over unseen data.\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "//Split data into training  and test.\nval splits = labelSet.randomSplit(Array(0.70, 0.30), seed = 13L)\nval training = splits(0)\nval test = splits(1)\n\nprintln(\"Test set Label sample:\" + test.take(1).mkString(\"\"))\nprintln(\"\\nTraining set Label sample:\" + training.take(1).mkString(\"\"))\nprintln()",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "Test set Label sample:(10.050815007015261,[2.0,8.0,5.0,354.1666666666667,4.687995066666667E7,861563.5,4.776468883333333E7])\n\nTraining set Label sample:(10.566481075391666,[4.0,17.0,3.0,2127.996031746032,3847276.428571428,358080.0,4261071.142857143])\n\nsplits: Array[org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint]] = Array(MapPartitionsRDD[5] at randomSplit at <console>:75, MapPartitionsRDD[6] at randomSplit at <console>:75)\ntraining: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[5] at randomSplit at <console>:75\ntest: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint] = MapPartitionsRDD[6] at randomSplit at <console>:75\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 7
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "This auxiliary function will calculate the accuracy of the model and some additional metrhis as well."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// prints results\ndef printStats(computedRdd:RDD[(Double, Double)]) = {\n    val dtTotalCorrect = computedRdd.map{ case (v, p) =>  \n                                       val error = (math.exp(v) - math.exp(p))/math.exp(v);\n                                       if (error > 0.20) 0 else 1;\n                                 }.sum()\n\n    val dtAccuracy = dtTotalCorrect / computedRdd.count\n    val MeanSquaredError = computedRdd.map{ case (v, p) => math.pow(v - p, 2) }.mean()\n    val RootMeanSquaredError = math.sqrt(MeanSquaredError)\n\n    println(\"Model Accuracy (ACC) = \" + dtAccuracy)\n    println(\"Mean Squared Error (MSE) = \" + MeanSquaredError)\n    println(\"Root Mean Squared Error (RMSE) = \" + RootMeanSquaredError)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "printStats: (computedRdd: org.apache.spark.rdd.RDD[(Double, Double)])Unit\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 14
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "This function will actually train the model. Notice we are filtering the dataset by carrier here. So the function returns a Map containing all of the trained models indexed by carrier weight."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// build and train model by carrier id\ndef buildDecTreeModelMap(rdd:RDD[LabeledPoint]) : scala.collection.immutable.Map[Double, DecisionTreeModel] = {\n  val range = List(1.0, 2.0, 4.0, 5.0)\n  \n  val categoricalFeaturesInfo = Map[Int, Int]()\n  val impurity = \"variance\"\n  val maxDepth = 7\n  val maxBins = 30\n  \n  return range.map{idx => \n                     val filteredSet = rdd.filter(l => l.features.apply(0) == idx)\n                   \n                     // building the model\n                     val model = DecisionTree.trainRegressor(filteredSet, \n                                                             categoricalFeaturesInfo, impurity, maxDepth, maxBins);\n                     (idx, model)\n                  }.toMap\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildDecTreeModelMap: (rdd: org.apache.spark.rdd.RDD[org.apache.spark.mllib.regression.LabeledPoint])scala.collection.immutable.Map[Double,org.apache.spark.mllib.tree.model.DecisionTreeModel]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 9
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Time to execute function and train the model."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// LET'S TRAIN THE MODEL ///\nval mapDecTreeModel = buildDecTreeModelMap(training)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "mapDecTreeModel: scala.collection.immutable.Map[Double,org.apache.spark.mllib.tree.model.DecisionTreeModel] = Map(1.0 -> DecisionTreeModel regressor of depth 7 with 131 nodes, 2.0 -> DecisionTreeModel regressor of depth 7 with 135 nodes, 4.0 -> DecisionTreeModel regressor of depth 7 with 129 nodes, 5.0 -> DecisionTreeModel regressor of depth 7 with 127 nodes)\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anonad6857650b76334909bcc56d0e1f257a&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:1.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 131 nodes&quot;},{&quot;_1&quot;:2.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 135 nodes&quot;},{&quot;_1&quot;:4.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 129 nodes&quot;},{&quot;_1&quot;:5.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 127 nodes&quot;}],&quot;genId&quot;:&quot;1689936867&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tabs'], \n      function(playground, _magictabs) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictabs,\n    \"o\": {}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n        <label for=\"input-anon6d6b2059e8069de32765ac6ff9e145ca\">\n      Max Points (controlling all tabs)\n    </label><input id=\"input-anon6d6b2059e8069de32765ac6ff9e145ca\" type=\"number\" name=\"input-anon6d6b2059e8069de32765ac6ff9e145ca\" data-bind=\"textInput: value, fireChange: true, valueUpdate: 'input'\">\n      <script data-selector=\"#input-anon6d6b2059e8069de32765ac6ff9e145ca\" data-this=\"{&quot;valueId&quot;:&quot;anon6d6b2059e8069de32765ac6ff9e145ca&quot;,&quot;valueInit&quot;:25}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(\n ['observable', 'knockout'],\n function (Observable, ko) {\n   //console.log(\"-----------\")\n   //console.dir(this);\n   //console.dir(valueId);\n   var obs = Observable.makeObservable(valueId)\n                       .extend({ rateLimit: { //throttle\n                                   timeout: 500,\n                                   method: \"notifyWhenChangesStop\"\n                                 }\n                               }\n                       );\n   ko.applyBindings({\n     value: obs\n   }, this);\n   obs(valueInit);\n }\n)/*]]>*/</script>\n    </input>\n        <div>\n          <ul class=\"nav nav-tabs\" id=\"ul1689936867\"><li>\n                <a href=\"#tab1689936867-0\"><i class=\"fa fa-table\"/></a>\n              </li></ul>\n\n          <div class=\"tab-content\" id=\"tab1689936867\"><div class=\"tab-pane\" id=\"tab1689936867-0\">\n              <div>\n      <script data-this=\"{&quot;dataId&quot;:&quot;anon4c490541c235d889a88822e24ec539f4&quot;,&quot;dataInit&quot;:[{&quot;_1&quot;:1.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 131 nodes&quot;},{&quot;_1&quot;:2.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 135 nodes&quot;},{&quot;_1&quot;:4.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 129 nodes&quot;},{&quot;_1&quot;:5.0,&quot;_2&quot;:&quot;DecisionTreeModel regressor of depth 7 with 127 nodes&quot;}],&quot;genId&quot;:&quot;747562580&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(['../javascripts/notebook/playground','../javascripts/notebook/magic/tableChart'], \n      function(playground, _magictableChart) {\n        // data ==> data-this (in observable.js's scopedEval) ==> this in JS => { dataId, dataInit, ... }\n        // this ==> scope (in observable.js's scopedEval) ==> this.parentElement ==> div.container below (toHtml)\n\n        playground.call(data,\n                        this\n                        ,\n                        {\n    \"f\": _magictableChart,\n    \"o\": {\"headers\":[\"_1\",\"_2\"],\"width\":600,\"height\":400}\n  }\n  \n                        \n                        \n                      );\n      }\n    );/*]]>*/</script>\n    <div>\n        <label for=\"input-anonf5b54a32efbab9e1a2eadc83766c1045\">\n      Max Points\n    </label><input id=\"input-anonf5b54a32efbab9e1a2eadc83766c1045\" type=\"number\" name=\"input-anonf5b54a32efbab9e1a2eadc83766c1045\" data-bind=\"textInput: value, fireChange: true, valueUpdate: 'input'\">\n      <script data-selector=\"#input-anonf5b54a32efbab9e1a2eadc83766c1045\" data-this=\"{&quot;valueId&quot;:&quot;anonf5b54a32efbab9e1a2eadc83766c1045&quot;,&quot;valueInit&quot;:25}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/req(\n ['observable', 'knockout'],\n function (Observable, ko) {\n   //console.log(\"-----------\")\n   //console.dir(this);\n   //console.dir(valueId);\n   var obs = Observable.makeObservable(valueId)\n                       .extend({ rateLimit: { //throttle\n                                   timeout: 500,\n                                   method: \"notifyWhenChangesStop\"\n                                 }\n                               }\n                       );\n   ko.applyBindings({\n     value: obs\n   }, this);\n   obs(valueInit);\n }\n)/*]]>*/</script>\n    </input>\n        <p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon524e091625430fe8eeabe489a43c9914&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p> <span style=\"color:red\"><p data-bind=\"text: value\"><script data-this=\"{&quot;valueId&quot;:&quot;anon868abbe76bc6c277fa353785011b35e9&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n        /*]]>*/</script></p></span>\n        <div>\n        </div>\n      </div></div>\n              </div></div>\n        </div>\n      </div></div>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 16
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "We'll use the *test* dataset to evaluate the trained models. The models are able to predict the number of expected _success_ given a set of features. To evaluate the performance of the model, we'll use the well known metric (One metric that metter) RMSE."
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "[RMSE](http://tillbergmann.com/blog/python-gradient-descent.html) (Root Mean Squared Error):\n\n\n$$ RMSE = \\sqrt{ \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2} $$"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false
+    },
+    "cell_type" : "code",
+    "source" : "// Evaluate model on test instances and compute test error\nval labelsAndPredictions = test.map { point =>\n  val carrier = point.features.apply(0)\n  val model = mapDecTreeModel(carrier)\n  val prediction = model.predict(point.features)\n  (point.label, prediction)\n}\n\nprintln(\"== Decision Tree Model ==\")\nprintStats(labelsAndPredictions)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "== Decision Tree Model ==\nModel Accuracy (ACC) = 0.9691358024691358\nMean Squared Error (MSE) = 0.00888878432643726\nRoot Mean Squared Error (RMSE) = 0.09428034963043604\nlabelsAndPredictions: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[257] at map at <console>:109\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 17
+    } ]
+  }, {
+    "metadata" : { },
+    "cell_type" : "markdown",
+    "source" : "Now you can persist your model and use it with one of supported langues: Scala, Java, Python e R."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true
+    },
+    "cell_type" : "code",
+    "source" : "// persisting mapDecTreeModel models to disk\nmapDecTreeModel.foreach{case (carrier, model) => \n                          val modelName = \"c\" + carrier.toInt + \"model\"\n                          model.save(sc, ROOT_DIR + \"/trained-models/\" + modelName)\n                       }",
+    "outputs" : [ ]
+  } ],
+  "nbformat" : 4
+}
