@@ -1,0 +1,656 @@
+{
+  "metadata" : {
+    "name" : "datafest-2017",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : [ ],
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "7D14273AEF2F4B40800E3C87D4EE19FF"
+    },
+    "cell_type" : "markdown",
+    "source" : "# Datafest 2017 -   Monitoring High Performance Platforms using Spark MLLib\n\n## By luciano.sabenca@movile.com and flavio.clesio@movile.com\n\n### September 26, 2017"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "A5AB4A6EFFCC4CE5940EF1E000008D8A"
+    },
+    "cell_type" : "markdown",
+    "source" : "## **ABOUT US **\n\n### Flávio Clésio\n- Core Machine Learning at Movile  \n- MSc. in Production Engineering (Machine Learning in Credit Derivatives/NPL)  \n- Specialist in Database Engineering and Business Intelligence\n- Blogger at Mineração de Dados (Data Mining) - http://mineracaodedados.wordpress.com\n\n### Luciano Sabença\n- Software Developer at Movile\n- BSc. in Computer Science\n- Specialist in Distributed Systems\n- 6+ Years in High Performance and Distributed Systems "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C83F6E3FE05448CB8A22B25F3E0D40AF"
+    },
+    "cell_type" : "markdown",
+    "source" : "<img src=\"http://127.0.0.1:8080/images/movile.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "4F4DEDEAEB754E3183DF191880237F6F"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Messaging and Billing Services\n- Corporative SMS  \n- Mobile Content through SMS: \n  - News  \n  - Whether report  \n  - Entretainment  \n  - Education  \n  - Anti-Viruses\n  - Care"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "5CB8A4DF78E54E358DC9C51FDE5577D1"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Movile Subscription and Billing Platform  \n- A distributed platform  \n- User's subscription management  \n- MISSION CRITICAL platform: can not stop under any circumstance"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "746A2461123C45D597F6E58ADE4EE9DF"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Main Workflow\n<img src=\"http://127.0.0.1:8080/images/billing_system.png\" width=\"80%\" />\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "79629EF7E9E848CC81F80C21AD7D1E41"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Common problems with distributed platforms  \n- All things can - AND WILL - broke  \n- Bad deployments  \n- Problems with some carriers (_eg._ deployment in their side, Ramsomware, ANATEL Issues, circuit breaker, bare wire, etc.)  \n- Preventive Maintenance\n\n<img src=\"http://127.0.0.1:8080/images/moss.png\" width=\"50%\" />"
+  }, {
+    "metadata" : {
+      "id" : "B2D3EFD47B214BDFA2B4DE8947B44DF2"
+    },
+    "cell_type" : "markdown",
+    "source" : "## But... How about the scale?\n- 230M transactions a day (~7B transactions per month or 83B year)\n- 4 Main carriers in Brazil, and the another LatAm telecom Giants"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "ED29723113054331890629536D2E93C8"
+    },
+    "cell_type" : "code",
+    "source" : "/*\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+--------+--------------+\n|carrier_id|  datepart|hour_of_day|avg_response_time|       first_attempt|last_attempt|successful_charges|no_credit|  errors|total_attempts|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+--------+--------------+\n|         1|2017-07-31|          0|            924.0|2017-07-31 00:00:...|      2017.0|           37911.0|1790648.0|145533.0|     1974092.0|\n|         1|2017-07-31|          1|            835.0|2017-07-31 01:00:...|      2017.0|            1500.0|1661866.0|136852.0|     1800218.0|\n|         1|2017-07-31|          2|            862.0|2017-07-31 02:00:...|      2017.0|            1320.0|1835148.0|159306.0|     1995774.0|\n|         1|2017-07-31|          3|           1093.0|2017-07-31 03:00:...|      2017.0|           12449.0|1775057.0|170922.0|     1958428.0|\n|         1|2017-07-31|          4|           1032.0|2017-07-31 04:00:...|      2017.0|            1231.0|1841635.0|170584.0|     2013450.0|\n+----------+-------+----------+-----------+-----------------+--------------------+------------+------------------+---------+--------+--------------+\n*/",
+    "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 1,
+      "time" : "Took: 1 second 293 milliseconds, at 2017-9-25 18:1"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "9FD681D6A9DA4FD6802629C798298A9F"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Modeling"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "FF1549FF740F44D58A09A120A9786587"
+    },
+    "cell_type" : "code",
+    "source" : "/*\n+------------------+\n|Target\t\t\t       |\n+------------------+\n|successful_charges|\n+------------------+\n|           37911.0|\n|            1500.0|\n+------------------+\n*/\n\n/*\n+------------------+\n|Features\t         |\n+----------+----------+-----------+-----------------+--------------------+------------+---------+--------+--------------+\n|carrier_id|  datepart|hour_of_day|avg_response_time|       first_attempt|last_attempt|no_credit|  errors|total_attempts|\n+----------+----------+-----------+-----------------+--------------------+------------+---------+--------+--------------+\n|         1|2017-07-31|          0|            924.0|2017-07-31 00:00:...|      2017.0|1790648.0|145533.0|     1974092.0|\n|         1|2017-07-31|          1|            835.0|2017-07-31 01:00:...|      2017.0|1661866.0|136852.0|     1800218.0|\n+----------+----------+-----------+-----------------+--------------------+------------+---------+--------+--------------+\n*/\n\n// A plain vanilla case of Supervised Learning",
+    "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2,
+      "time" : "Took: 1 second 56 milliseconds, at 2017-9-25 18:1"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "6527D25571B04E86AB2101B1911E7435"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Apache Spark   \n\n<img src=\"http://127.0.0.1:8080/images/spark.png\" width=\"50%\" />\n\n\n- MLlib is Apache Spark's scalable machine learning library.  \n- MLlib contains many algorithms and utilities, including Classification, Regression, Clustering, Recommendation, Pipelines and so on...\n\n"
+  }, {
+    "metadata" : {
+      "id" : "1C9D38CAFDF24D2D8BA8658F3743B4BC"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Spark RDD vs Spark DataFrame\n\n<img src=\"http://127.0.0.1:8080/images/rdd.png\" width=\"40%\" height=\"40%\" />\n\n\n\n<img src=\"http://127.0.0.1:8080/images/dataframe.png\" width=\"70%\" height=\"70%\" />\n\n\n\n<img src=\"http://127.0.0.1:8080/images/rdd_vs_dataframe.png\" width=\"70%\" height=\"70%\" />\n\n"
+  }, {
+    "metadata" : {
+      "id" : "AC703EC3D74B4FF08207C60A5BDDCFE3"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Why we changed from RDD to Dataframe? (Solid tips)  \n- RDD will be deprecated at Spark 4.x  \n- All data science work can be done more easily in a more user-friendly API than RDDs  \n- Same performance as RDD and warranty of same consistency  \n- All Feature Engineering (Feature Extraction and Feature Selection) can be done in ML Pipelines  \n- Best way to assembly (wrap-up) all code in Pipelines  \n- A good way to perform Grid Search in our models (hyperparameters)  \n- Much less painful debugging\n\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "F2A5D06A31CE4C2496BA0C0B57765D48"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Experimental Design \n###Algoritihms used  \n - Linear Model with Stochastic Gradient (SDG)  \n - Lasso with SGD Model (L1 Regularization)  \n - Ridge Regression with SGD Model (L2 Regularization)  \n - Decision Trees with Regression (Regression Trees)\n\n###Configurations\n  - Default (*on-the-shelf*) configurations\n  - Grid Search for every algorithm  \n  - No Cross Validaton  \n  - No Random Search  \n  - 3 entire months of data (Reason: High volatile demand and several external bias (_e.g._ media investments, marketing campaigns, etc.)) "
+  }, {
+    "metadata" : {
+      "id" : "5FAEE5846C7F4A73806A837101DC993F"
+    },
+    "cell_type" : "markdown",
+    "source" : "\nHere is the our flow. We will take the following steps to train and evaluate our model:\n<img src=\"http://127.0.0.1:8080/images/data-flow.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "37A9047733C04EEF83A5523279D813BB"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorIndexer\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\n\nimport org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType, TimestampType, DoubleType, DateType}\nimport org.apache.spark.sql.expressions.Window\nimport org.apache.spark.sql.functions._\nimport java.util.Calendar\nimport java.util.Date\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\n\nimport resource._\n\nval ROOT = \"/Users/lucianosabenca/Movile/tools/spark-notebook-0.7.0-scala-2.11.8-spark-2.1.0-hadoop-2.7.1-with-hive/notebooks/datafest-2017\"\n\nval session = SparkSession\n      .builder\n      .appName(\"DecisionTreePipeline\")\n      .getOrCreate()\n\n// You can monitoring all this stuff in: http://localhost:4040/jobs/\n\nval customSchema = StructType(Array(\n    StructField(\"carrier_id\", IntegerType, true),\n    StructField(\"datepart\", DateType, true),\n    StructField(\"hour_of_day\", IntegerType, true),\n    StructField(\"avg_response_time\", DoubleType, true),\n    StructField(\"first_attempt\", TimestampType, true),\n    StructField(\"last_attempt\", DoubleType, true),\n    StructField(\"successful_charges\", DoubleType, true),\n    StructField(\"no_credit\", DoubleType, true),\n    StructField(\"errors\", DoubleType, true),\n    StructField(\"total_attempts\", DoubleType, true)\n))\n\n\nval df = session.read\n        .format(\"org.apache.spark.csv\")\n        .option(\"header\", \"true\") //reading the headers\n        .option(\"delimiter\", \",\")\n        .option(\"mode\", \"DROPMALFORMED\")\n        .schema(customSchema)\n        .csv(ROOT + \"/data-sample.csv\");\n\ndf.show(5)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+\n|carrier_id|  datepart|hour_of_day|avg_response_time|       first_attempt|last_attempt|successful_charges|no_credit|   errors|total_attempts|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+\n|         1|2017-05-31|         23|            554.0|2017-05-31 23:59:...|      2017.0|               1.0|    126.0|     24.0|         151.0|\n|         1|2017-06-01|          0|            665.0|2017-06-01 00:00:...|      2017.0|           36795.0|1630065.0| 258729.0|     1925589.0|\n|         1|2017-06-01|          1|            629.0|2017-06-01 01:00:...|      2017.0|            6394.0|1850630.0| 297376.0|     2154400.0|\n|         1|2017-06-01|          2|            618.0|2017-06-01 02:00:...|      2017.0|            1336.0|1849991.0| 297538.0|     2148865.0|\n|         1|2017-06-01|          3|            813.0|2017-06-01 03:00:...|      2017.0|           15885.0| 858300.0|1209290.0|     2083475.0|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+\nonly showing top 5 rows\n\nimport org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorIndexer\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\nimport org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType, TimestampType, DoubleType, DateType}\nimport org.apache.spark.sql.expressions.Window\nimport org.apache.spark.sql.functions._\nimport java.util.Calendar\nimport java.util.Date\nimport org.apache.spark.mllib.tree.model.Dec..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 9,
+      "time" : "Took: 927 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "434C0E6D06704DDC882DB5FFBD17C0C4"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Creating some usefull fields\n\nWe will need some functions to deal with the date and extract only the Week of Month from a date.\n\nLet's create it and apply the function to create a new DataFrame with a new column, named *week_of_month*\n\n<img src=\"http://127.0.0.1:8080/images/step2.png\" width=\"80%\" />\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "54B9D2456B914E22B3E7567FB1BBBF95"
+    },
+    "cell_type" : "code",
+    "source" : "// function to extract the week of month from a timestamp\nval udfWoM = (dt :Date) => {\n   val cal = Calendar.getInstance()\n   cal.setTime(dt)\n  \n   cal.setMinimalDaysInFirstWeek(1)\n   cal.get(Calendar.WEEK_OF_MONTH).toDouble\n}\n\n// user defined function\nval weekOfMonthUDF = udf(udfWoM)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "udfWoM: java.util.Date => Double = <function1>\nweekOfMonthUDF: org.apache.spark.sql.expressions.UserDefinedFunction = UserDefinedFunction(<function1>,DoubleType,None)\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 10,
+      "time" : "Took: 687 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "CD2ADB51D4BC43F88F7BE71549AEE7D9"
+    },
+    "cell_type" : "code",
+    "source" : "// apply UDF to extract the week of month from date time field\nval rawData = df.withColumn(\"week_of_month\", weekOfMonthUDF($\"datepart\"))\n\nrawData.show(20)\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+-------------+\n|carrier_id|  datepart|hour_of_day|avg_response_time|       first_attempt|last_attempt|successful_charges|no_credit|   errors|total_attempts|week_of_month|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+-------------+\n|         1|2017-05-31|         23|            554.0|2017-05-31 23:59:...|      2017.0|               1.0|    126.0|     24.0|         151.0|          5.0|\n|         1|2017-06-01|          0|            665.0|2017-06-01 00:00:...|      2017.0|           36795.0|1630065.0| 258729.0|     1925589.0|          1.0|\n|         1|2017-06-01|          1|            629.0|2017-06-01 01:00:...|      2017.0|            6394.0|1850630.0| 297376.0|     2154400.0|          1.0|\n|         1|2017-06-01|          2|            618.0|2017-06-01 02:00:...|      2017.0|            1336.0|1849991.0| 297538.0|     2148865.0|          1.0|\n|         1|2017-06-01|          3|            813.0|2017-06-01 03:00:...|      2017.0|           15885.0| 858300.0|1209290.0|     2083475.0|          1.0|\n|         1|2017-06-01|          4|            675.0|2017-06-01 04:00:...|      2017.0|               0.0|      0.0|2143869.0|     2143869.0|          1.0|\n|         1|2017-06-01|          5|            652.0|2017-06-01 05:00:...|      2017.0|               0.0|      0.0|1977737.0|     1977737.0|          1.0|\n|         1|2017-06-01|          6|            737.0|2017-06-01 06:00:...|      2017.0|               0.0|      0.0|2140846.0|     2140846.0|          1.0|\n|         1|2017-06-01|          7|            706.0|2017-06-01 07:00:...|      2017.0|               0.0|      0.0|2172704.0|     2172704.0|          1.0|\n|         1|2017-06-01|          8|            779.0|2017-06-01 08:00:...|      2017.0|             703.0|1219653.0| 798168.0|     2018524.0|          1.0|\n|         1|2017-06-01|          9|            796.0|2017-06-01 09:00:...|      2017.0|            1074.0|1686245.0| 259093.0|     1946412.0|          1.0|\n|         1|2017-06-01|         10|            768.0|2017-06-01 10:00:...|      2017.0|            2288.0|1613849.0| 250568.0|     1866705.0|          1.0|\n|         1|2017-06-01|         11|            691.0|2017-06-01 11:00:...|      2017.0|            2972.0|1627473.0| 255757.0|     1886202.0|          1.0|\n|         1|2017-06-01|         12|            691.0|2017-06-01 12:00:...|      2017.0|            3463.0|1609270.0| 259903.0|     1872636.0|          1.0|\n|         1|2017-06-01|         13|            712.0|2017-06-01 13:00:...|      2017.0|            7310.0|1037335.0| 150387.0|     1195032.0|          1.0|\n|         1|2017-06-01|         14|            775.0|2017-06-01 14:00:...|      2017.0|            4454.0|1485299.0| 196759.0|     1686512.0|          1.0|\n|         1|2017-06-01|         15|            729.0|2017-06-01 15:00:...|      2017.0|            3994.0|1262763.0| 173988.0|     1440745.0|          1.0|\n|         1|2017-06-01|         16|            731.0|2017-06-01 16:00:...|      2017.0|            3504.0|1435533.0| 189715.0|     1628752.0|          1.0|\n|         1|2017-06-01|         17|            766.0|2017-06-01 17:00:...|      2017.0|            3767.0|1454719.0| 184612.0|     1643098.0|          1.0|\n|         1|2017-06-01|         18|            756.0|2017-06-01 18:00:...|      2017.0|            2921.0|1411081.0| 190424.0|     1604426.0|          1.0|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+---------+--------------+-------------+\nonly showing top 20 rows\n\nrawData: org.apache.spark.sql.DataFrame = [carrier_id: int, datepart: date ... 9 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 11,
+      "time" : "Took: 908 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "90D7D7022AB848B28564E2C3B01C1486"
+    },
+    "cell_type" : "code",
+    "source" : "rawData.groupBy(\"week_of_month\").count().show()",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+-------------+-----+\n|week_of_month|count|\n+-------------+-----+\n|          1.0|  862|\n|          4.0| 1344|\n|          3.0| 1344|\n|          2.0| 1339|\n|          6.0|    3|\n|          5.0|  664|\n+-------------+-----+\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 12,
+      "time" : "Took: 1 second 415 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "32F2554FC86F406D833716A4391CA58B"
+    },
+    "cell_type" : "code",
+    "source" : "val avgDataFrame = rawData.groupBy(\"carrier_id\", \"hour_of_day\",\"week_of_month\").agg(avg(\"avg_response_time\").as(\"avg_response_time\"), \n                                                                                        avg(\"successful_charges\").as(\"successful_charges\"), \n                                                                                        avg(\"no_credit\").as(\"no_credit\"), \n                                                                                        avg(\"errors\").as(\"errors\"),\n                                                                                        avg(\"total_attempts\").as(\"total_attempts\"))\n\n\n\navgDataFrame.show(10)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+-----------+-------------+------------------+------------------+------------------+------------------+------------------+\n|carrier_id|hour_of_day|week_of_month| avg_response_time|successful_charges|         no_credit|            errors|    total_attempts|\n+----------+-----------+-------------+------------------+------------------+------------------+------------------+------------------+\n|         4|         19|          1.0|2151.8888888888887| 5639.555555555556| 485200.1111111111|43225.666666666664| 539509.4444444445|\n|         2|         13|          3.0| 793.2142857142857| 6751.714285714285|3303669.1428571427|327476.78571428574|3637897.6428571427|\n|         5|          7|          5.0|402.42857142857144|             415.0|1556150.5714285714| 65866.71428571429|1622432.2857142857|\n|         2|         17|          5.0|             619.0| 4271.714285714285| 3964692.285714286| 168816.2857142857| 4137780.285714286|\n|         5|         20|          1.0|249.33333333333334|            1563.0|1753286.3333333333|47808.555555555555| 1802657.888888889|\n|         2|          7|          5.0|397.57142857142856|             269.0| 6001100.714285715|266201.14285714284| 6267570.857142857|\n|         2|         15|          5.0|             596.0| 6479.142857142857| 4443275.142857143| 177984.2857142857| 4627738.571428572|\n|         4|          5|          3.0|1057.9285714285713|1.5714285714285714|27.642857142857142|0.7142857142857143|30.285714285714285|\n|         5|         20|          3.0|338.85714285714283| 1067.142857142857|1500125.7857142857| 56036.71428571428| 1557229.642857143|\n|         1|         10|          2.0| 957.1428571428571|1457.7857142857142| 1736530.357142857|          222652.5| 1960640.642857143|\n+----------+-----------+-------------+------------------+------------------+------------------+------------------+------------------+\nonly showing top 10 rows\n\navgDataFrame: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 6 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 13,
+      "time" : "Took: 1 second 215 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "D184782F35784E428776DA9A66BE6FC5"
+    },
+    "cell_type" : "code",
+    "source" : "rawData.where(\"carrier_id = 4 AND hour_of_day = 19 and WEEk_of_month = 5\").show()",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+-------+--------------+-------------+\n|carrier_id|  datepart|hour_of_day|avg_response_time|       first_attempt|last_attempt|successful_charges|no_credit| errors|total_attempts|week_of_month|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+-------+--------------+-------------+\n|         4|2017-06-25|         19|           1915.0|2017-06-25 19:00:...|      2017.0|             553.0| 542291.0|15127.0|      558432.0|          5.0|\n|         4|2017-06-26|         19|           1893.0|2017-06-26 19:00:...|      2017.0|            1377.0| 586218.0|24208.0|      612932.0|          5.0|\n|         4|2017-06-27|         19|           1957.0|2017-06-27 19:00:...|      2017.0|            1184.0| 586818.0|30804.0|      619784.0|          5.0|\n|         4|2017-05-28|         19|           1976.0|2017-05-28 19:00:...|      2017.0|             409.0| 531172.0|18259.0|      550716.0|          5.0|\n|         4|2017-05-29|         19|           2240.0|2017-05-29 19:00:...|      2017.0|            1441.0| 646753.0|38528.0|      688594.0|          5.0|\n|         4|2017-05-30|         19|           2203.0|2017-05-30 19:00:...|      2017.0|            1298.0| 503354.0|28653.0|      534818.0|          5.0|\n|         4|2017-05-31|         19|           2097.0|2017-05-31 19:00:...|      2017.0|            1944.0| 521418.0|21999.0|      547303.0|          5.0|\n+----------+----------+-----------+-----------------+--------------------+------------+------------------+---------+-------+--------------+-------------+\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 14,
+      "time" : "Took: 1 second 216 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "EEE69F4EC9DE4FF284DB1E53E8B1AC19"
+    },
+    "cell_type" : "markdown",
+    "source" : "The data now looks like: "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "44B05F8F6A3E4825830D2CF56DFFC425"
+    },
+    "cell_type" : "code",
+    "source" : "avgDataFrame.where(\"carrier_id = 4 AND hour_of_day = 19 and WEEk_of_month = 5\").show()",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+-----------+-------------+-----------------+------------------+-----------------+------------------+-----------------+\n|carrier_id|hour_of_day|week_of_month|avg_response_time|successful_charges|        no_credit|            errors|   total_attempts|\n+----------+-----------+-------------+-----------------+------------------+-----------------+------------------+-----------------+\n|         4|         19|          5.0|2040.142857142857|1172.2857142857142|559717.7142857143|25368.285714285714|587511.2857142857|\n+----------+-----------+-------------+-----------------+------------------+-----------------+------------------+-----------------+\n\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 15,
+      "time" : "Took: 1 second 348 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "4A8DF72B0D094B7F9452611F8BCC6821"
+    },
+    "cell_type" : "markdown",
+    "source" : "We still need to agreggate summing the values from the past hours until the current hour:"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "221A8AE317AF44AD8CF4028C8C0DA1FF"
+    },
+    "cell_type" : "code",
+    "source" : "val carrierList = List(1)\n\n// filtering data by carrier_id\nval listDataFrame = carrierList.map{id =>\n    avgDataFrame.filter(\"carrier_id = \" + id)\n}\n\n\n//means from beginning until current position\nval wSpec = Window.partitionBy(\"week_of_month\").orderBy(\"hour_of_day\").rowsBetween(Long.MinValue, 0)\n\nval summarizedList = listDataFrame.map{dataframe => \n    val df = dataframe.withColumn(\"avg_response_time\", avg($\"avg_response_time\").over(wSpec))\n               .withColumn(\"successful_charges\", sum($\"successful_charges\").over(wSpec))\n               .withColumn(\"no_credit\", sum($\"no_credit\").over(wSpec))\n               .withColumn(\"errors\", sum($\"errors\").over(wSpec))\n               .withColumn(\"total_attempts\", sum($\"total_attempts\").over(wSpec))\n    df //return the dataset                                     \n}\n\nsummarizedList.foreach{_.show(3)}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+-----------+-------------+-----------------+------------------+------------------+-----------------+------------------+\n|carrier_id|hour_of_day|week_of_month|avg_response_time|successful_charges|         no_credit|           errors|    total_attempts|\n+----------+-----------+-------------+-----------------+------------------+------------------+-----------------+------------------+\n|         1|          0|          1.0|685.2222222222222| 35471.22222222222|1742373.6666666667|288916.3333333333|2066761.2222222222|\n|         1|          1|          1.0|679.9444444444443|41201.555555555555| 3566392.555555556|606522.7777777778| 4214116.888888889|\n|         1|          2|          1.0|672.6666666666666|42714.666666666664| 5448010.222222223|925410.4444444445| 6416135.333333334|\n+----------+-----------+-------------+-----------------+------------------+------------------+-----------------+------------------+\nonly showing top 3 rows\n\ncarrierList: List[Int] = List(1)\nlistDataFrame: List[org.apache.spark.sql.Dataset[org.apache.spark.sql.Row]] = List([carrier_id: int, hour_of_day: int ... 6 more fields])\nwSpec: org.apache.spark.sql.expressions.WindowSpec = org.apache.spark.sql.expressions.WindowSpec@6ee138fa\nsummarizedList: List[org.apache.spark.sql.DataFrame] = List([carrier_id: int, hour_of_day: int ... 6 more fields])\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 16,
+      "time" : "Took: 2 seconds 660 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "529114E421364B6F8E01C63F8681E943"
+    },
+    "cell_type" : "markdown",
+    "source" : "At this point, we have a list for each carrier with only its data. We will create a unique dataframe again with all the data and write it to a disk. This will be our checkpoint!\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C53BA5B6863343E482F6938703AC60B3"
+    },
+    "cell_type" : "code",
+    "source" : "val summarizedDataFrame = summarizedList.reduce(_ union _)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "summarizedDataFrame: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 6 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 17,
+      "time" : "Took: 649 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "60410C2033F04020B1AFB03743168388"
+    },
+    "cell_type" : "code",
+    "source" : "summarizedDataFrame.count",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "res32: Long = 120\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "120"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 18,
+      "time" : "Took: 1 second 404 milliseconds, at 2017-9-25 20:56"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "D6443F98F59F4010A3227E999EACD3C1"
+    },
+    "cell_type" : "code",
+    "source" : "//write data to disk in parquet format\nsummarizedDataFrame.write.format(\"parquet\").mode(\"overwrite\").save(ROOT + \"/sbs-summarized-dataframe\")",
+    "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 19,
+      "time" : "Took: 3 seconds 930 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "282390EB58074DAC8DF220D630C356A4"
+    },
+    "cell_type" : "markdown",
+    "source" : "To read again the data from the disk, you just need to run the following command:\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "43366C5EBC0E4DC2B469919FCDE166F3"
+    },
+    "cell_type" : "code",
+    "source" : "val summarizedDataFrame = session.read.load(ROOT + \"/sbs-summarized-dataframe\").cache",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "summarizedDataFrame: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 6 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 20,
+      "time" : "Took: 710 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "442D73C10DDD4C5488D4582445FCFD0E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Setting our model's labels and features\n\nWe are now ready to create our model's features and labels! Just before that, let's do a quick remember on our naming: \n- **Features**: Our features are the independent variables. In our linear model, it is multiplied by the trained coeficients.\n- **Label**: Is our dependent variables. Our target is predict its value.\n\nIn this example, we want to predict our **success** number using as input the following features: *hour_of_day*, *week_of_month*, *avg_response_time*, *no_credit*, *errors*, *total_attempts*."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "7699BA1DA2E84B9188C2DA6B16B67177"
+    },
+    "cell_type" : "code",
+    "source" : "// features\nval assemblerSucccesful = new VectorAssembler()\n                      .setInputCols(Array(\"hour_of_day\", \"week_of_month\", \"avg_response_time\",\"no_credit\", \"errors\", \"total_attempts\"))\n                      .setOutputCol(\"features_success\")\n\n\n\n// creating label in log format\nval dataWithLabels = summarizedDataFrame.withColumn(\"successful_charges_log\", log($\"successful_charges\"))\n\n\nval dataWithLabelsFiltered = dataWithLabels.filter(\"successful_charges_log is not null\")\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "assemblerSucccesful: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_3256d4fe942c\ndataWithLabels: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 7 more fields]\ndataWithLabelsFiltered: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 21,
+      "time" : "Took: 631 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C9CE881AE4994758884FBA994BB6118E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Setting our metrics and validators\n\nWe have now to define which metrics will be usefull now! \nWe have defined, after some tests, 3 classical metrics: \n - **RMSE (Root Mean Squared Error)**: $$ RMSE = \\sqrt{ \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2} $$\n - **MSE (Mean Squared Error)**: $$ MSE = \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2 $$\n - **Rˆ2**: Coeficient of determination.\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "2743CA0933A24E8486C63F5DE5876FBD"
+    },
+    "cell_type" : "code",
+    "source" : "def buildEvaluator(label: String, predictionCol: String): RegressionEvaluator = {\n  new RegressionEvaluator()\n    .setLabelCol(label)\n    .setPredictionCol(predictionCol)\n}\n\ndef evaluateMSE(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"mse\")\n  evaluator.evaluate(df)\n}\n\ndef evaluateR2(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"r2\")\n  evaluator.evaluate(df)\n}\n\ndef evaluateRMSE(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"rmse\")\n  evaluator.evaluate(df)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildEvaluator: (label: String, predictionCol: String)org.apache.spark.ml.evaluation.RegressionEvaluator\nevaluateMSE: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\nevaluateR2: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\nevaluateRMSE: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 22,
+      "time" : "Took: 653 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "DB027F574B3045E48CF73A20DAE62802"
+    },
+    "cell_type" : "code",
+    "source" : "// prints result of algorithm tested\ndef buildStatsMaps(carrier: Double, col: Column, label: String, df: DataFrame, predictionCol: String): Map[String, Any] = {\n  val calculateAcc = (exp: Double, predicted: Double) => {\n    val error = (exp - predicted) / exp\n    if (error > 0.1) 0 else 1\n  }\n\n  val calcAccuracyUDF = udf(calculateAcc)\n\n  val rmse = evaluateRMSE(df, label, \"prediction_log\")\n  val mse = evaluateMSE(df, label, \"prediction_log\")\n  val r2 = evaluateR2(df, label, \"prediction_log\")\n\n  val data = df.withColumn(\"result_column\", calcAccuracyUDF(col, df(predictionCol)))\n  val total = data.count.toDouble\n  // filter prediction that got right\n  val correct = data.filter(\"result_column = 1\").count.toDouble\n  val accuracy = (correct / total) * 100\n\n  Map(\"rmse\" -> rmse, \"mse\" -> mse, \"r2\" -> r2, \"accuracy\" -> accuracy)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildStatsMaps: (carrier: Double, col: org.apache.spark.sql.Column, label: String, df: org.apache.spark.sql.DataFrame, predictionCol: String)Map[String,Any]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 23,
+      "time" : "Took: 792 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "7C7FEFBEBA3C4A8282EC0A0776905E9E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Building, training the model and evaluating the model\n\nWe are finally ready to build and train our model!\n<img src=\"http://127.0.0.1:8080/images/step3.png\" width=\"80%\" />\n\nFirst, we need to split our data in test and training. We will use 10% of data to validate and 90% to train.\nAfter that, we will create the model itself, the DecisionTreeRegressor, with our label and features. We will build also a Pipeline with two stages: build the assembler vector with our data and the decision tree.\n\nThere is also some parameters which are related with the model itself. They are named: *hyperparameters*. In the decision tree model we have basically two hyperparameters:\n- **MaxDepth**: How deep must be the decision tree?\n- **MaxBin**: How many bins must be the decision tree?\n\n\n<img src=\"http://127.0.0.1:8080/images/tree-model.png\" width=\"30%\" height=\"15%\" />\n\nWe will need also the evaluator to decide which of the trained models is the best model for the problem. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab987973994-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "40E5217E1DB248929E990C6CFA24DFEB"
+    },
+    "cell_type" : "code",
+    "source" : "val trainedModels = carrierList.map { c =>\n  val label  = \"successful_charges_log\"\n  val features = \"features_success\"\n  val predictionColumn = \"successful_charges\"\n  val assembler = assemblerSucccesful\n  val data = dataWithLabels.filter(s\"carrier_id = $c\")\n  val Array(trainingData, testData) = data.randomSplit(Array(0.9, 0.1))\n\n  // Train a DecisionTree model.\n  val decisionTree = new DecisionTreeRegressor()\n      .setLabelCol(label)\n      .setFeaturesCol(features)\n      .setPredictionCol(\"prediction_log\")\n\n  val pipeline = new Pipeline().setStages(Array(assemblerSucccesful, decisionTree))\n\n  val paramGrid = new ParamGridBuilder()\n     .addGrid(decisionTree.maxDepth, Array(6, 7, 8))\n     .addGrid(decisionTree.maxBins, (15 to 32).toList)\n     .build()\n\n  // Select (prediction, true label) and compute test error.\n  val evaluator = new RegressionEvaluator()\n     .setLabelCol(label)\n     .setPredictionCol(\"prediction_log\")\n     .setMetricName(\"rmse\")\n\n\n   val trainValidationSplit = new TrainValidationSplit()\n     .setEstimator(pipeline)\n     .setEvaluator(evaluator)\n     .setEstimatorParamMaps(paramGrid)\n     .setTrainRatio(0.8)\n\n   //train a model\n  val model = trainValidationSplit.fit(trainingData)\n\n  //make predictions\n  val predictions = model.transform(testData)\n  val columnValue = s\"prediction_$predictionColumn\"\n\n  val predictionResult = predictions.withColumn(columnValue, exp($\"prediction_log\"))\n  val statsMap = buildStatsMaps(c, predictionResult(columnValue), label, predictionResult, columnValue)\n  \n\n  val bestModel = model.bestModel.asInstanceOf[PipelineModel].stages(1).asInstanceOf[DecisionTreeRegressionModel]\n  println(s\"maxDepth: ${bestModel.getMaxDepth}, maxBins: ${bestModel.getMaxBins}\")\n  (bestModel, c, statsMap)\n}\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "maxDepth: 8, maxBins: 22\ntrainedModels: List[(org.apache.spark.ml.regression.DecisionTreeRegressionModel, Int, Map[String,Any])] = List((DecisionTreeRegressionModel (uid=dtr_65271060462a) of depth 8 with 187 nodes,1,Map(rmse -> 0.04510345197596071, mse -> 0.002034321380147794, r2 -> 0.9660898976919587, accuracy -> 100.0)))\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 24,
+      "time" : "Took: 25 seconds 849 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab796444309-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6D8711B778364848B4FE8950E27B2951"
+    },
+    "cell_type" : "code",
+    "source" : "(trainedModels(0)._1).toDebugString\n  ",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "res41: String =\n\"DecisionTreeRegressionModel (uid=dtr_65271060462a) of depth 8 with 187 nodes\n  If (feature 3 <= 9414131.554945055)\n   If (feature 0 <= 2.0)\n    If (feature 0 <= 0.0)\n     If (feature 1 <= 2.0)\n      If (feature 1 <= 1.0)\n       Predict: 10.476477005088364\n      Else (feature 1 > 1.0)\n       Predict: 10.415594497916002\n     Else (feature 1 > 2.0)\n      If (feature 1 <= 4.0)\n       If (feature 1 <= 3.0)\n        Predict: 10.344347382700308\n       Else (feature 1 > 3.0)\n        Predict: 10.344301418579894\n      Else (feature 1 > 4.0)\n       Predict: 10.285411052061256\n    Else (feature 0 > 0.0)\n     If (feature 1 <= 2.0)\n      If (feature 0 <= 1.0)\n       If (feature 1 <= 1.0)\n        Predict: 10.626231290827675\n       Else (feature 1 > 1.0)\n        Predict: 10.624269007784..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "DecisionTreeRegressionModel (uid=dtr_65271060462a) of depth 8 with 187 nodes\n  If (feature 3 &lt;= 9414131.554945055)\n   If (feature 0 &lt;= 2.0)\n    If (feature 0 &lt;= 0.0)\n     If (feature 1 &lt;= 2.0)\n      If (feature 1 &lt;= 1.0)\n       Predict: 10.476477005088364\n      Else (feature 1 &gt; 1.0)\n       Predict: 10.415594497916002\n     Else (feature 1 &gt; 2.0)\n      If (feature 1 &lt;= 4.0)\n       If (feature 1 &lt;= 3.0)\n        Predict: 10.344347382700308\n       Else (feature 1 &gt; 3.0)\n        Predict: 10.344301418579894\n      Else (feature 1 &gt; 4.0)\n       Predict: 10.285411052061256\n    Else (feature 0 &gt; 0.0)\n     If (feature 1 &lt;= 2.0)\n      If (feature 0 &lt;= 1.0)\n       If (feature 1 &lt;= 1.0)\n        Predict: 10.626231290827675\n       Else (feature 1 &gt; 1.0)\n        Predict: 10.624269007784182\n      Else (feature 0 &gt; 1.0)\n       Predict: 10.662297621895352\n     Else (feature 1 &gt; 2.0)\n      If (feature 1 &lt;= 4.0)\n       If (feature 2 &lt;= 693.1666666666666)\n        If (feature 1 &lt;= 3.0)\n         Predict: 10.560522611831995\n        Else (feature 1 &gt; 3.0)\n         Predict: 10.54153910621385\n       Else (feature 2 &gt; 693.1666666666666)\n        If (feature 1 &lt;= 3.0)\n         Predict: 10.507286211526067\n        Else (feature 1 &gt; 3.0)\n         Predict: 10.505859789258688\n      Else (feature 1 &gt; 4.0)\n       If (feature 0 &lt;= 1.0)\n        Predict: 10.400433005160421\n       Else (feature 0 &gt; 1.0)\n        Predict: 10.461686010002468\n   Else (feature 0 &gt; 2.0)\n    If (feature 1 &lt;= 3.0)\n     If (feature 4 &lt;= 1760690.6428571432)\n      If (feature 1 &lt;= 2.0)\n       Predict: 10.970208771890446\n      Else (feature 1 &gt; 2.0)\n       Predict: 10.971072234607037\n     Else (feature 4 &gt; 1760690.6428571432)\n      If (feature 0 &lt;= 4.0)\n       If (feature 3 &lt;= 7927643.412087912)\n        Predict: 11.000449854350665\n       Else (feature 3 &gt; 7927643.412087912)\n        Predict: 10.995420174411938\n      Else (feature 0 &gt; 4.0)\n       Predict: 11.027757323635491\n    Else (feature 1 &gt; 3.0)\n     If (feature 5 &lt;= 9793410.593406593)\n      If (feature 4 &lt;= 1760690.6428571432)\n       If (feature 2 &lt;= 1666.7678571428567)\n        Predict: 10.754645300900677\n       Else (feature 2 &gt; 1666.7678571428567)\n        Predict: 10.769768376656003\n      Else (feature 4 &gt; 1760690.6428571432)\n       Predict: 10.803111592069065\n     Else (feature 5 &gt; 9793410.593406593)\n      If (feature 4 &lt;= 2822585.3571428573)\n       If (feature 0 &lt;= 4.0)\n        Predict: 10.854107934914774\n       Else (feature 0 &gt; 4.0)\n        Predict: 10.860256448399026\n      Else (feature 4 &gt; 2822585.3571428573)\n       Predict: 10.872630933800195\n  Else (feature 3 &gt; 9414131.554945055)\n   If (feature 3 &lt;= 2.505480692857143E7)\n    If (feature 3 &lt;= 1.9274162285714287E7)\n     If (feature 1 &lt;= 4.0)\n      If (feature 1 &lt;= 2.0)\n       If (feature 0 &lt;= 6.0)\n        If (feature 0 &lt;= 5.0)\n         Predict: 11.061918909891686\n        Else (feature 0 &gt; 5.0)\n         If (feature 1 &lt;= 1.0)\n          Predict: 11.124499364956598\n         Else (feature 1 &gt; 1.0)\n          Predict: 11.093329362111191\n       Else (feature 0 &gt; 6.0)\n        If (feature 3 &lt;= 1.3166652714285716E7)\n         Predict: 11.149362725809398\n        Else (feature 3 &gt; 1.3166652714285716E7)\n         If (feature 2 &lt;= 881.2584915084914)\n          Predict: 11.167795756911516\n         Else (feature 2 &gt; 881.2584915084914)\n          Predict: 11.186131397264688\n      Else (feature 1 &gt; 2.0)\n       If (feature 3 &lt;= 1.3166652714285716E7)\n        If (feature 0 &lt;= 6.0)\n         If (feature 0 &lt;= 5.0)\n          Predict: 10.996158416319647\n         Else (feature 0 &gt; 5.0)\n          Predict: 11.058139176728607\n        Else (feature 0 &gt; 6.0)\n         Predict: 10.985463410499072\n       Else (feature 3 &gt; 1.3166652714285716E7)\n        If (feature 3 &lt;= 1.7455170714285716E7)\n         If (feature 2 &lt;= 833.1263736263736)\n          Predict: 11.099711454774287\n         Else (feature 2 &gt; 833.1263736263736)\n          Predict: 11.04666051000607\n        Else (feature 3 &gt; 1.7455170714285716E7)\n         If (feature 0 &lt;= 10.0)\n          Predict: 11.135875995538836\n         Else (feature 0 &gt; 10.0)\n          Predict: 11.112478814739536\n     Else (feature 1 &gt; 4.0)\n      If (feature 0 &lt;= 10.0)\n       If (feature 0 &lt;= 6.0)\n        Predict: 10.91398135809223\n       Else (feature 0 &gt; 6.0)\n        If (feature 3 &lt;= 1.570961492857143E7)\n         If (feature 0 &lt;= 8.0)\n          Predict: 10.936608485311394\n         Else (feature 0 &gt; 8.0)\n          Predict: 10.939907771344616\n        Else (feature 3 &gt; 1.570961492857143E7)\n         Predict: 10.956671519703832\n      Else (feature 0 &gt; 10.0)\n       If (feature 0 &lt;= 11.0)\n        Predict: 10.98384130689695\n       Else (feature 0 &gt; 11.0)\n        Predict: 11.027175655624733\n    Else (feature 3 &gt; 1.9274162285714287E7)\n     If (feature 5 &lt;= 2.6903405928571425E7)\n      If (feature 1 &lt;= 4.0)\n       If (feature 1 &lt;= 2.0)\n        If (feature 0 &lt;= 11.0)\n         If (feature 0 &lt;= 10.0)\n          Predict: 11.194263239896117\n         Else (feature 0 &gt; 10.0)\n          Predict: 11.217401459550587\n        Else (feature 0 &gt; 11.0)\n         Predict: 11.257005179117343\n       Else (feature 1 &gt; 2.0)\n        If (feature 5 &lt;= 2.5315660285714284E7)\n         If (feature 0 &lt;= 11.0)\n          Predict: 11.157656674790887\n         Else (feature 0 &gt; 11.0)\n          Predict: 11.14300709019823\n        Else (feature 5 &gt; 2.5315660285714284E7)\n         If (feature 0 &lt;= 12.0)\n          Predict: 11.203015311901291\n         Else (feature 0 &gt; 12.0)\n          Predict: 11.198136439180159\n      Else (feature 1 &gt; 4.0)\n       If (feature 0 &lt;= 13.0)\n        Predict: 11.067644552391348\n       Else (feature 0 &gt; 13.0)\n        Predict: 11.117713329326238\n     Else (feature 5 &gt; 2.6903405928571425E7)\n      If (feature 2 &lt;= 1483.0340136054417)\n       If (feature 5 &lt;= 2.8279224785714284E7)\n        If (feature 1 &lt;= 2.0)\n         If (feature 0 &lt;= 12.0)\n          Predict: 11.268962519627692\n         Else (feature 0 &gt; 12.0)\n          Predict: 11.295430354214638\n        Else (feature 1 &gt; 2.0)\n         If (feature 3 &lt;= 2.208086892857143E7)\n          Predict: 11.25206799329152\n         Else (feature 3 &gt; 2.208086892857143E7)\n          Predict: 11.238239528097465\n       Else (feature 5 &gt; 2.8279224785714284E7)\n        If (feature 0 &lt;= 16.0)\n         If (feature 0 &lt;= 13.0)\n          Predict: 11.310953429304936\n         Else (feature 0 &gt; 13.0)\n          Predict: 11.290260945979771\n        Else (feature 0 &gt; 16.0)\n         Predict: 11.334626378612285\n      Else (feature 2 &gt; 1483.0340136054417)\n       If (feature 0 &lt;= 15.0)\n        Predict: 11.159890825849988\n       Else (feature 0 &gt; 15.0)\n        Predict: 11.205621663144964\n   Else (feature 3 &gt; 2.505480692857143E7)\n    If (feature 5 &lt;= 4.0744571452380955E7)\n     If (feature 3 &lt;= 2.7930319285714284E7)\n      If (feature 1 &lt;= 4.0)\n       If (feature 3 &lt;= 2.637873464285714E7)\n        If (feature 2 &lt;= 787.3690476190477)\n         Predict: 11.328957124400455\n        Else (feature 2 &gt; 787.3690476190477)\n         If (feature 4 &lt;= 4501917.241758242)\n          Predict: 11.37805043851977\n         Else (feature 4 &gt; 4501917.241758242)\n          Predict: 11.36239175736965\n       Else (feature 3 &gt; 2.637873464285714E7)\n        If (feature 1 &lt;= 2.0)\n         If (feature 0 &lt;= 15.0)\n          Predict: 11.410777068878906\n         Else (feature 0 &gt; 15.0)\n          Predict: 11.424753794721026\n        Else (feature 1 &gt; 2.0)\n         If (feature 0 &lt;= 16.0)\n          Predict: 11.369071590620338\n         Else (feature 0 &gt; 16.0)\n          Predict: 11.391642024324076\n      Else (feature 1 &gt; 4.0)\n       If (feature 0 &lt;= 17.0)\n        Predict: 11.244237102626611\n       Else (feature 0 &gt; 17.0)\n        Predict: 11.268047421510014\n     Else (feature 3 &gt; 2.7930319285714284E7)\n      If (feature 2 &lt;= 1163.399350649351)\n       If (feature 3 &lt;= 3.101713607142857E7)\n        If (feature 2 &lt;= 789.0095238095238)\n         If (feature 0 &lt;= 17.0)\n          Predict: 11.406430973271199\n         Else (feature 0 &gt; 17.0)\n          Predict: 11.434335154438102\n        Else (feature 2 &gt; 789.0095238095238)\n         If (feature 3 &lt;= 2.951352957142857E7)\n          Predict: 11.461787577556972\n         Else (feature 3 &gt; 2.951352957142857E7)\n          Predict: 11.487704643111902\n       Else (feature 3 &gt; 3.101713607142857E7)\n        If (feature 1 &lt;= 2.0)\n         If (feature 3 &lt;= 3.257691307142857E7)\n          Predict: 11.527483423339042\n         Else (feature 3 &gt; 3.257691307142857E7)\n          Predict: 11.564640658207047\n        Else (feature 1 &gt; 2.0)\n         If (feature 0 &lt;= 19.0)\n          Predict: 11.46646333881617\n         Else (feature 0 &gt; 19.0)\n          Predict: 11.497791023588952\n      Else (feature 2 &gt; 1163.399350649351)\n       If (feature 4 &lt;= 5939958.714285714)\n        If (feature 0 &lt;= 20.0)\n         Predict: 11.335272422257631\n        Else (feature 0 &gt; 20.0)\n         Predict: 11.36614230044955\n       Else (feature 4 &gt; 5939958.714285714)\n        If (feature 4 &lt;= 6245839.333333333)\n         If (feature 0 &lt;= 22.0)\n          Predict: 11.393724639009708\n         Else (feature 0 &gt; 22.0)\n          Predict: 11.410104051105758\n        Else (feature 4 &gt; 6245839.333333333)\n         Predict: 11.435041912737269\n    Else (feature 5 &gt; 4.0744571452380955E7)\n     If (feature 1 &lt;= 2.0)\n      If (feature 0 &lt;= 21.0)\n       If (feature 4 &lt;= 7308891.714285714)\n        If (feature 0 &lt;= 20.0)\n         Predict: 11.595830738257241\n        Else (feature 0 &gt; 20.0)\n         Predict: 11.610734567815989\n       Else (feature 4 &gt; 7308891.714285714)\n        Predict: 11.631752893330244\n      Else (feature 0 &gt; 21.0)\n       If (feature 0 &lt;= 22.0)\n        If (feature 1 &lt;= 1.0)\n         Predict: 11.663026049460731\n        Else (feature 1 &gt; 1.0)\n         Predict: 11.640072869390346\n       Else (feature 0 &gt; 22.0)\n        Predict: 11.68803403356037\n     Else (feature 1 &gt; 2.0)\n      If (feature 3 &lt;= 3.571473957142857E7)\n       If (feature 0 &lt;= 21.0)\n        Predict: 11.535627246997644\n       Else (feature 0 &gt; 21.0)\n        Predict: 11.517709716451803\n      Else (feature 3 &gt; 3.571473957142857E7)\n       If (feature 0 &lt;= 22.0)\n        Predict: 11.564056424753659\n       Else (feature 0 &gt; 22.0)\n        Predict: 11.583032382344221\n"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 25,
+      "time" : "Took: 996 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "CE3A1F5987C44AE080578B994A94ACB1"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Evaluating our model\n\nWe can now evaluate our model, simply print the stats already computed:\n<img src=\"http://127.0.0.1:8080/images/step4.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "D52D2633061E45D58EA46DE69EE56984"
+    },
+    "cell_type" : "code",
+    "source" : "trainedModels.foreach{ case (m, c, statsMap) => \n                      m.write.overwrite.save(ROOT + \"/trained-models-dataframe/success-c\" + c)\n                      println(statsMap)}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "Map(rmse -> 0.04510345197596071, mse -> 0.002034321380147794, r2 -> 0.9660898976919587, accuracy -> 100.0)\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 26,
+      "time" : "Took: 1 second 340 milliseconds, at 2017-9-25 20:57"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "C0D4BEBCAACB445E8747F86B873C1B02"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Nostradamus API\n\nA Generic API which loads all the serialized models and make them accessible using an HTTP API.\n\n\n## Watcher AI\n\nWe've build also Watcher-AI, a scheduler which consults our relational database and uses nostradamus to consult the models. Watcher-AI is also capable of dispare a lot of notifications to several systems."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "FDC562C9D34A4DA48B75D1B4B554FD60"
+    },
+    "cell_type" : "code",
+    "source" : "\n                                                                               +----------------------------------------------+\n                                                                               |          OMNI Notification Strategy          |                 \n                                                                               +----------------------------------------------+\n                            +---------------------------------------+          |                                              |\n                            |            Nostradamus API            |          |                                              |\n                            +---------------------------------------+          |        +------------------+                  |\n                            |                                       |  ---------------> | SMS Notification |                  |\n+-----------------------+   |  (Load ML Models)                     |          |        +------------------+                  |\n| Pre Treined ML Models | <---------------------                    |          |                                              |\n+-----------------------+   |                    |                  |          |        +----------------------------------+  |\n                            |         +------------------------+    |  ---------------> | Pushbullet (3Rd Party Messaging) |  |\n                            |         |                        |    |          |        +----------------------------------+  |\n                            |         | Watcher-AI (Scheduler) |    |          |                                              |\n                            |         |                        |    |          |        +--------------------------------+    |\n                            |         +------------------------+    |  ---------------> | Zabbix (Alerts and Monitoring) |    |        \n+-----------------------+   |                     |                 |          |        +--------------------------------+    |\n| Amazon Redshift       | <----------------------                   |          |                                              |\n+-----------------------+   |  (SQL Query in DB)                    |          |        +-----------------------+             |\n                            |                                       |  ---------------> | JIRA (Issue Tracking) |             |\n                            +---------------------------------------+          |        +-----------------------+             |\n                                                                               |                                              |\n                                                                               +----------------------------------------------+\n\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "69697A5A57C34DBF9577A0C0D5351384"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Afterwards (Empirical observations about this kind of problem)\n- Regularization doesnt's fits so well with our low dimensional data (_i.e._ All columns have some importance in the model)\n- (Empirically for us) Linear Methods are good for extrapolation, but Decision Trees are more suitable for interpolation problems (More deterministic)\n- Time Series with thresholds didn't work in the past 'cause we have several exogenous factors that makes the regular algorithms go wild (_e.g._ investments in media, freezing of carriers, maintenance in several satellite platforms, _etc_)   \n- We avoid (totally removed) fixed thresholds based in standard deviations 'cause when the volume naturally goes up, the lower limit doesn't make sense anymore, and we need some dynamic ajustments\n- In our case, regular regression modeling it's good for regular prediction in well behaviored problems. In our problem we deal with several factors like seasonality, patterns inside the hour, number of the week, day of the week, special hours for billing in some carriers and make the whole trainning thinking in the 4 main carriers"
+  }, {
+    "metadata" : {
+      "id" : "E65BC7840CFC4F7B81B27D9AFC6EEA70"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Prelimirary Results  \n- First barrier of defense  \n- Early warning in several teams (_e.g._ infrastructure, platforms, revenue assurance, and so on)  \n- Catch any discrepancy in hourly fashion\n\n\n## Key Results  \n\n<img src=\"http://127.0.0.1:8080/images/results.png\" height=\"50%\" width=\"70%\"/>\n\n\n\n\n## Challenges and Next Steps  \n- Automatic refeed and training using collected data. Analyse more data to predict possible errors with carrier  \n- Notify more people and specific teams (more complex problems)  \n- Expand the same idea for another platforms  \n- Link some specific behaviours and solve the problem automatically\n\n\n\n\n<img src=\"http://127.0.0.1:8080/images/final.png\" height=\"50%\" width=\"70%\"/>"
+  } ],
+  "nbformat" : 4
+}
