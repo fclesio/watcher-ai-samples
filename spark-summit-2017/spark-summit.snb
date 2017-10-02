@@ -1,0 +1,344 @@
+{
+  "metadata" : {
+    "name" : "spark-summit",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : [ ],
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "7D14273AEF2F4B40800E3C87D4EE19FF"
+    },
+    "cell_type" : "markdown",
+    "source" : "# Spark Summit 2017 - PREVENTING REVENUE LEAKAGE AND MONITORING DISTRIBUTED SYSTEMS WITH MACHINE LEARNING\n\n## By flavio.clesio@movile.com and Eiti Kimura\n\n### Thursday, October 26"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "A5AB4A6EFFCC4CE5940EF1E000008D8A"
+    },
+    "cell_type" : "markdown",
+    "source" : "## **ABOUT US **\n\n### Flávio Clésio\n- Core Machine Learning at Movile  \n- MSc. in Production Engineering (Machine Learning in Credit Derivatives/NPL)  \n- Specialist in Database Engineering and Business Intelligence\n- Blogger at Mineração de Dados (Data Mining) - http://mineracaodedados.wordpress.com\n\n### Luciano Sabença\n- Software Developer at Movile\n- BSc. in Computer Science\n- Specialist in Distributed Systems\n- 6+ Years in High Performance and Distributed Systems "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "C83F6E3FE05448CB8A22B25F3E0D40AF"
+    },
+    "cell_type" : "markdown",
+    "source" : "<img src=\"http://127.0.0.1:8080/images/movile.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "4F4DEDEAEB754E3183DF191880237F6F"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Messaging and Billing Services\n- Corporative SMS  \n- Mobile Content through SMS: \n  - News  \n  - Whether report  \n  - Entretainment  \n  - Education  \n  - Anti-Viruses\n  - Care"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "5CB8A4DF78E54E358DC9C51FDE5577D1"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Movile Subscription and Billing Platform  \n- A distributed platform  \n- User's subscription management  \n- MISSION CRITICAL platform: can not stop under any circumstance"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "746A2461123C45D597F6E58ADE4EE9DF"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Main Workflow\n<img src=\"http://127.0.0.1:8080/images/billing_system.png\" width=\"80%\" />\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "79629EF7E9E848CC81F80C21AD7D1E41"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Common problems with distributed platforms  \n- All things can - AND WILL - broke  \n- Bad deployments  \n- Problems with some carriers (_eg._ deployment in their side, Ramsomware, ANATEL Issues, circuit breaker, bare wire, etc.)  \n- Preventive Maintenance\n\n<img src=\"http://127.0.0.1:8080/images/moss.png\" width=\"50%\" />"
+  }, {
+    "metadata" : {
+      "id" : "B2D3EFD47B214BDFA2B4DE8947B44DF2"
+    },
+    "cell_type" : "markdown",
+    "source" : "## But... How about the scale?\n- 230M transactions a day (~7B transactions per month or 83B year)\n- 4 Main carriers in Brazil, and the another LatAm telecom Giants"
+  }, {
+    "metadata" : {
+      "id" : "9FD681D6A9DA4FD6802629C798298A9F"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Modeling"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "6527D25571B04E86AB2101B1911E7435"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Apache Spark   \n\n<img src=\"http://127.0.0.1:8080/images/spark.png\" width=\"50%\" />\n\n\n- MLlib is Apache Spark's scalable machine learning library.  \n- MLlib contains many algorithms and utilities, including Classification, Regression, Clustering, Recommendation, Pipelines and so on...\n\n"
+  }, {
+    "metadata" : {
+      "id" : "AC703EC3D74B4FF08207C60A5BDDCFE3"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Why we changed from RDD to Dataframe? (Solid tips)  \n- RDD will be deprecated at Spark 4.x  \n- All data science work can be done more easily in a more user-friendly API than RDDs  \n- Same performance as RDD and warranty of same consistency  \n- All Feature Engineering (Feature Extraction and Feature Selection) can be done in ML Pipelines  \n- Best way to assembly (wrap-up) all code in Pipelines  \n- A good way to perform Grid Search in our models (hyperparameters)  \n- Much less painful debugging\n\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "F2A5D06A31CE4C2496BA0C0B57765D48"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Experimental Design \n###Algoritihms used  \n - Linear Model with Stochastic Gradient (SDG)  \n - Lasso with SGD Model (L1 Regularization)  \n - Ridge Regression with SGD Model (L2 Regularization)  \n - Decision Trees with Regression (Regression Trees)\n\n###Configurations\n  - Default (*on-the-shelf*) configurations\n  - Grid Search for every algorithm  \n  - No Cross Validaton  \n  - No Random Search  \n  - 3 entire months of data (Reason: High volatile demand and several external bias (_e.g._ media investments, marketing campaigns, etc.)) "
+  }, {
+    "metadata" : {
+      "id" : "5FAEE5846C7F4A73806A837101DC993F"
+    },
+    "cell_type" : "markdown",
+    "source" : "\nHere is the our flow. We will take the following steps to train and evaluate our model:\n<img src=\"http://127.0.0.1:8080/images/data-flow.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "37A9047733C04EEF83A5523279D813BB"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorIndexer\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\n\nimport org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType, TimestampType, DoubleType, DateType}\nimport org.apache.spark.sql.expressions.Window\nimport org.apache.spark.sql.functions._\nimport java.util.Calendar\nimport java.util.Date\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\n\nimport resource._\n\nval ROOT = \"/Users/flavio.clesio/Documents/spark-notebook-production/spark-notebook-0.7.0/notebooks/spark-summit-2017\"\n\nval session = SparkSession\n      .builder\n      .appName(\"DecisionTreePipeline\")\n      .getOrCreate()\n\n// We'll load a pre-processed dataset\nval summarizedDataFrame = session.read.load(ROOT + \"/sbs-summarized-dataframe\").cache\n\nsummarizedDataFrame.count",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "import org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorIndexer\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\nimport org.apache.spark.sql.types.{StructType, StructField, StringType, IntegerType, TimestampType, DoubleType, DateType}\nimport org.apache.spark.sql.expressions.Window\nimport org.apache.spark.sql.functions._\nimport java.util.Calendar\nimport java.util.Date\nimport org.apache.spark.mllib.tree.model.Dec..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "120"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 1,
+      "time" : "Took: 11 seconds 592 milliseconds, at 2017-9-29 7:43"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "434C0E6D06704DDC882DB5FFBD17C0C4"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Creating some usefull fields\n\nWe will need some functions to deal with the date and extract only the Week of Month from a date.\n\nLet's create it and apply the function to create a new DataFrame with a new column, named *week_of_month*\n\n<img src=\"http://127.0.0.1:8080/images/step2.png\" width=\"80%\" />\n"
+  }, {
+    "metadata" : {
+      "id" : "EEE69F4EC9DE4FF284DB1E53E8B1AC19"
+    },
+    "cell_type" : "markdown",
+    "source" : "The data now looks like: "
+  }, {
+    "metadata" : {
+      "id" : "4A8DF72B0D094B7F9452611F8BCC6821"
+    },
+    "cell_type" : "markdown",
+    "source" : "We still need to agreggate summing the values from the past hours until the current hour:"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "529114E421364B6F8E01C63F8681E943"
+    },
+    "cell_type" : "markdown",
+    "source" : "At this point, we have a list for each carrier with only its data. We will create a unique dataframe again with all the data and write it to a disk. This will be our checkpoint!\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "282390EB58074DAC8DF220D630C356A4"
+    },
+    "cell_type" : "markdown",
+    "source" : "To read again the data from the disk, you just need to run the following command:\n"
+  }, {
+    "metadata" : {
+      "id" : "442D73C10DDD4C5488D4582445FCFD0E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Setting our model's labels and features\n\nWe are now ready to create our model's features and labels! Just before that, let's do a quick remember on our naming: \n- **Features**: Our features are the independent variables. In our linear model, it is multiplied by the trained coeficients.\n- **Label**: Is our dependent variables. Our target is predict its value.\n\nIn this example, we want to predict our **success** number using as input the following features: *hour_of_day*, *week_of_month*, *avg_response_time*, *no_credit*, *errors*, *total_attempts*."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "7699BA1DA2E84B9188C2DA6B16B67177"
+    },
+    "cell_type" : "code",
+    "source" : "// features\nval assemblerSucccesful = new VectorAssembler()\n                      .setInputCols(Array(\"hour_of_day\", \"week_of_month\", \"avg_response_time\",\"no_credit\", \"errors\", \"total_attempts\"))\n                      .setOutputCol(\"features_success\")\n\n\n\n// creating label in log format\nval dataWithLabels = summarizedDataFrame.withColumn(\"successful_charges_log\", log($\"successful_charges\"))\n\n\nval dataWithLabelsFiltered = dataWithLabels.filter(\"successful_charges_log is not null\")\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "assemblerSucccesful: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_5f2d50dc1a4f\ndataWithLabels: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 7 more fields]\ndataWithLabelsFiltered: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2,
+      "time" : "Took: 3 seconds 281 milliseconds, at 2017-9-29 7:44"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C9CE881AE4994758884FBA994BB6118E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Setting our metrics and validators\n\nWe have now to define which metrics will be usefull now! \nWe have defined, after some tests, 3 classical metrics: \n - **RMSE (Root Mean Squared Error)**: $$ RMSE = \\sqrt{ \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2} $$\n - **MSE (Mean Squared Error)**: $$ MSE = \\frac{1}{n} \\sum_{i=1}^{n} (\\hat{y_i} - y_i)^2 $$\n - **Rˆ2**: Coeficient of determination.\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "2743CA0933A24E8486C63F5DE5876FBD"
+    },
+    "cell_type" : "code",
+    "source" : "def buildEvaluator(label: String, predictionCol: String): RegressionEvaluator = {\n  new RegressionEvaluator()\n    .setLabelCol(label)\n    .setPredictionCol(predictionCol)\n}\n\ndef evaluateMSE(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"mse\")\n  evaluator.evaluate(df)\n}\n\ndef evaluateR2(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"r2\")\n  evaluator.evaluate(df)\n}\n\ndef evaluateRMSE(df: DataFrame, label: String, predictionCol: String): Double = {\n  val evaluator = buildEvaluator(label, predictionCol)\n  evaluator.setMetricName(\"rmse\")\n  evaluator.evaluate(df)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildEvaluator: (label: String, predictionCol: String)org.apache.spark.ml.evaluation.RegressionEvaluator\nevaluateMSE: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\nevaluateR2: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\nevaluateRMSE: (df: org.apache.spark.sql.DataFrame, label: String, predictionCol: String)Double\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 3,
+      "time" : "Took: 3 seconds 33 milliseconds, at 2017-9-29 7:44"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "DB027F574B3045E48CF73A20DAE62802"
+    },
+    "cell_type" : "code",
+    "source" : "// prints result of algorithm tested\ndef buildStatsMaps(carrier: Double, col: Column, label: String, df: DataFrame, predictionCol: String): Map[String, Any] = {\n  val calculateAcc = (exp: Double, predicted: Double) => {\n    val error = (exp - predicted) / exp\n    if (error > 0.1) 0 else 1\n  }\n\n  val calcAccuracyUDF = udf(calculateAcc)\n\n  val rmse = evaluateRMSE(df, label, \"prediction_log\")\n  val mse = evaluateMSE(df, label, \"prediction_log\")\n  val r2 = evaluateR2(df, label, \"prediction_log\")\n\n  val data = df.withColumn(\"result_column\", calcAccuracyUDF(col, df(predictionCol)))\n  val total = data.count.toDouble\n  // filter prediction that got right\n  val correct = data.filter(\"result_column = 1\").count.toDouble\n  val accuracy = (correct / total) * 100\n\n  Map(\"rmse\" -> rmse, \"mse\" -> mse, \"r2\" -> r2, \"accuracy\" -> accuracy)\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "buildStatsMaps: (carrier: Double, col: org.apache.spark.sql.Column, label: String, df: org.apache.spark.sql.DataFrame, predictionCol: String)Map[String,Any]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 4,
+      "time" : "Took: 2 seconds 924 milliseconds, at 2017-9-29 7:44"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "7C7FEFBEBA3C4A8282EC0A0776905E9E"
+    },
+    "cell_type" : "markdown",
+    "source" : "### Building, training the model and evaluating the model\n\nWe are finally ready to build and train our model!\n<img src=\"http://127.0.0.1:8080/images/step3.png\" width=\"80%\" />\n\nFirst, we need to split our data in test and training. We will use 10% of data to validate and 90% to train.\nAfter that, we will create the model itself, the DecisionTreeRegressor, with our label and features. We will build also a Pipeline with two stages: build the assembler vector with our data and the decision tree.\n\nThere is also some parameters which are related with the model itself. They are named: *hyperparameters*. In the decision tree model we have basically two hyperparameters:\n- **MaxDepth**: How deep must be the decision tree?\n- **MaxBin**: How many bins must be the decision tree?\n\n\n<img src=\"http://127.0.0.1:8080/images/tree-model.png\" width=\"30%\" height=\"15%\" />\n\nWe will need also the evaluator to decide which of the trained models is the best model for the problem. "
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab987973994-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "40E5217E1DB248929E990C6CFA24DFEB"
+    },
+    "cell_type" : "code",
+    "source" : "val trainedModels = carrierList.map { c =>\n  val label  = \"successful_charges_log\"\n  val features = \"features_success\"\n  val predictionColumn = \"successful_charges\"\n  val assembler = assemblerSucccesful\n  val data = dataWithLabels.filter(s\"carrier_id = $c\")\n  val Array(trainingData, testData) = data.randomSplit(Array(0.9, 0.1))\n\n  // Train a DecisionTree model.\n  val decisionTree = new DecisionTreeRegressor()\n      .setLabelCol(label)\n      .setFeaturesCol(features)\n      .setPredictionCol(\"prediction_log\")\n\n  val pipeline = new Pipeline().setStages(Array(assemblerSucccesful, decisionTree))\n\n  val paramGrid = new ParamGridBuilder()\n     .addGrid(decisionTree.maxDepth, Array(6, 7, 8))\n     .addGrid(decisionTree.maxBins, (15 to 32).toList)\n     .build()\n\n  // Select (prediction, true label) and compute test error.\n  val evaluator = new RegressionEvaluator()\n     .setLabelCol(label)\n     .setPredictionCol(\"prediction_log\")\n     .setMetricName(\"rmse\")\n\n\n   val trainValidationSplit = new TrainValidationSplit()\n     .setEstimator(pipeline)\n     .setEvaluator(evaluator)\n     .setEstimatorParamMaps(paramGrid)\n     .setTrainRatio(0.8)\n\n   //train a model\n  val model = trainValidationSplit.fit(trainingData)\n\n  //make predictions\n  val predictions = model.transform(testData)\n  val columnValue = s\"prediction_$predictionColumn\"\n\n  val predictionResult = predictions.withColumn(columnValue, exp($\"prediction_log\"))\n  val statsMap = buildStatsMaps(c, predictionResult(columnValue), label, predictionResult, columnValue)\n  \n\n  val bestModel = model.bestModel.asInstanceOf[PipelineModel].stages(1).asInstanceOf[DecisionTreeRegressionModel]\n  println(s\"maxDepth: ${bestModel.getMaxDepth}, maxBins: ${bestModel.getMaxBins}\")\n  (bestModel, c, statsMap)\n}\n",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "<console>:101: error: not found: value carrierList\n       val trainedModels = carrierList.map { c =>\n                           ^\n"
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab796444309-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"Count\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "6D8711B778364848B4FE8950E27B2951"
+    },
+    "cell_type" : "code",
+    "source" : "(trainedModels(0)._1).toDebugString\n  ",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "CE3A1F5987C44AE080578B994A94ACB1"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Evaluating our model\n\nWe can now evaluate our model, simply print the stats already computed:\n<img src=\"http://127.0.0.1:8080/images/step4.png\" width=\"80%\" />"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "D52D2633061E45D58EA46DE69EE56984"
+    },
+    "cell_type" : "code",
+    "source" : "trainedModels.foreach{ case (m, c, statsMap) => \n                      m.write.overwrite.save(ROOT + \"/trained-models-dataframe/success-c\" + c)\n                      println(statsMap)}",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "C0D4BEBCAACB445E8747F86B873C1B02"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Nostradamus API\n\nA Generic API which loads all the serialized models and make them accessible using an HTTP API.\n\n\n## Watcher AI\n\nWe've build also Watcher-AI, a scheduler which consults our relational database and uses nostradamus to consult the models. Watcher-AI is also capable of dispare a lot of notifications to several systems."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "FDC562C9D34A4DA48B75D1B4B554FD60"
+    },
+    "cell_type" : "code",
+    "source" : "\n                                                                               +----------------------------------------------+\n                                                                               |          OMNI Notification Strategy          |                 \n                                                                               +----------------------------------------------+\n                            +---------------------------------------+          |                                              |\n                            |            Nostradamus API            |          |                                              |\n                            +---------------------------------------+          |        +------------------+                  |\n                            |                                       |  ---------------> | SMS Notification |                  |\n+-----------------------+   |  (Load ML Models)                     |          |        +------------------+                  |\n| Pre Treined ML Models | <---------------------                    |          |                                              |\n+-----------------------+   |                    |                  |          |        +----------------------------------+  |\n                            |         +------------------------+    |  ---------------> | Pushbullet (3Rd Party Messaging) |  |\n                            |         |                        |    |          |        +----------------------------------+  |\n                            |         | Watcher-AI (Scheduler) |    |          |                                              |\n                            |         |                        |    |          |        +--------------------------------+    |\n                            |         +------------------------+    |  ---------------> | Zabbix (Alerts and Monitoring) |    |        \n+-----------------------+   |                     |                 |          |        +--------------------------------+    |\n| Amazon Redshift       | <----------------------                   |          |                                              |\n+-----------------------+   |  (SQL Query in DB)                    |          |        +-----------------------+             |\n                            |                                       |  ---------------> | JIRA (Issue Tracking) |             |\n                            +---------------------------------------+          |        +-----------------------+             |\n                                                                               |                                              |\n                                                                               +----------------------------------------------+\n\n",
+    "outputs" : [ ]
+  }, {
+    "metadata" : {
+      "id" : "69697A5A57C34DBF9577A0C0D5351384"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Afterwards (Empirical observations about this kind of problem)\n- Regularization doesnt's fits so well with our low dimensional data (_i.e._ All columns have some importance in the model)\n- (Empirically for us) Linear Methods are good for extrapolation, but Decision Trees are more suitable for interpolation problems (More deterministic)\n- Time Series with thresholds didn't work in the past 'cause we have several exogenous factors that makes the regular algorithms go wild (_e.g._ investments in media, freezing of carriers, maintenance in several satellite platforms, _etc_)   \n- We avoid (totally removed) fixed thresholds based in standard deviations 'cause when the volume naturally goes up, the lower limit doesn't make sense anymore, and we need some dynamic ajustments\n- In our case, regular regression modeling it's good for regular prediction in well behaviored problems. In our problem we deal with several factors like seasonality, patterns inside the hour, number of the week, day of the week, special hours for billing in some carriers and make the whole trainning thinking in the 4 main carriers"
+  }, {
+    "metadata" : {
+      "id" : "E65BC7840CFC4F7B81B27D9AFC6EEA70"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Prelimirary Results  \n- First barrier of defense  \n- Early warning in several teams (_e.g._ infrastructure, platforms, revenue assurance, and so on)  \n- Catch any discrepancy in hourly fashion\n\n\n## Key Results  \n\n<img src=\"http://127.0.0.1:8080/images/results.png\" height=\"50%\" width=\"70%\"/>\n\n\n\n\n## Challenges and Next Steps  \n- Automatic refeed and training using collected data. Analyse more data to predict possible errors with carrier  \n- Notify more people and specific teams (more complex problems)  \n- Expand the same idea for another platforms  \n- Link some specific behaviours and solve the problem automatically\n\n\n\n\n<img src=\"http://127.0.0.1:8080/images/final.png\" height=\"50%\" width=\"70%\"/>"
+  } ],
+  "nbformat" : 4
+}
