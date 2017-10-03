@@ -5,3 +5,4 @@
 *.log
 watcher-trainer/target/
 build/
+trained-models-dataframe/
