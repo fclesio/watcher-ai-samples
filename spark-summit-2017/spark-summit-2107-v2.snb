@@ -1,0 +1,321 @@
+{
+  "metadata" : {
+    "name" : "spark-summit-2107-v2",
+    "user_save_timestamp" : "1969-12-31T21:00:00.000Z",
+    "auto_save_timestamp" : "0022-10-06T21:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : [ ],
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "B9E39EE453B04D58B130E7828C328526"
+    },
+    "cell_type" : "markdown",
+    "source" : "# Spark Summit EU 2017\n\nEiti Kimura, Movile, Brazil\nFlavio Clésio, Movile, Brazil\n\n**Title of the Presentation: PREVENTING REVENUE LEAKAGE AND MONITORING DISTRIBUTED SYSTEMS WITH MACHINE LEARNING **\n\nThursday, October 26 14:40 – 15:10\n\nVenue: Liffey B - Dublin, Ireland \n\nAll of the code presented here was written in Scala language especially for the Spark Summit EU 2017 event."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "DFB1F6025E204206865849B701C6F23F"
+    },
+    "cell_type" : "code",
+    "source" : "import org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\n\nimport org.apache.spark.ml.feature.VectorAssembler\n//import org.apache.spark.sql.functions._\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\n\nimport resource._",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "import org.apache.spark.ml.Pipeline\nimport org.apache.spark.ml.PipelineModel\nimport org.apache.spark.ml.evaluation.RegressionEvaluator\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.ml.regression.DecisionTreeRegressionModel\nimport org.apache.spark.ml.regression.DecisionTreeRegressor\nimport org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}\nimport org.apache.spark.ml.tuning.TrainValidationSplitModel\nimport org.apache.spark.ml.feature.VectorAssembler\nimport org.apache.spark.mllib.tree.model.DecisionTreeModel\nimport resource._\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 28,
+      "time" : "Took: 4 seconds 208 milliseconds, at 2017-10-5 17:4"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "04478C53A29A45698A744BC81129A3CD"
+    },
+    "cell_type" : "markdown",
+    "source" : "##Step 1 - Read the dataset\n\nAll of the running processes can be monitored using Spark Interface: http://localhost:4040/jobs/"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "44F9504B37D74EE382D056F71EC5351E"
+    },
+    "cell_type" : "code",
+    "source" : "val ROOT = \"./notebooks/watcher-ai-samples/spark-summit-2017\"\n\n//spark notebook already provide me a sparkSession object, ready to use\nval rawDataFrame = sparkSession.read.load(ROOT + \"/sbs-dataframe\")\n                               .withColumn(\"successful_charges_log\", log($\"successful_charges\"))\n\nval targetColName  = \"successful_charges_log\"\nval featuresColName = \"features_success\"\nval predictionColName = \"prediction_log\"\n\nrawDataFrame\n.select(s\"carrier_id\", s\"successful_charges\", s\"no_credit\", s\"total_attempts\")\n.show(5)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "+----------+------------------+------------------+------------------+\n|carrier_id|successful_charges|         no_credit|    total_attempts|\n+----------+------------------+------------------+------------------+\n|         1| 33376.07142857143|1750555.9285714286| 2045742.142857143|\n|         1| 41120.78571428571|         3468767.5|4043648.1428571427|\n|         1| 43242.57142857143| 5191541.142857143| 6045361.642857143|\n|         1| 58116.72527472527| 6593962.912087912| 7955685.950549451|\n|         1| 59901.08241758242| 7927643.412087912| 9793410.593406593|\n+----------+------------------+------------------+------------------+\nonly showing top 5 rows\n\nROOT: String = ./notebooks/watcher-ai-samples/spark-summit-2017\nrawDataFrame: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntargetColName: String = successful_charges_log\nfeaturesColName: String = features_success\npredictionColName: String = prediction_log\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 4,
+      "time" : "Took: 3 seconds 172 milliseconds, at 2017-10-5 15:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "964DFCF55A8147A4B950392934BE1414"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Step 2 - Defining the Algorithm to use"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B2B1129527844415B9787A1369EA6359"
+    },
+    "cell_type" : "code",
+    "source" : "val decisionTreeAlgorithm = new DecisionTreeRegressor()\n      .setLabelCol(targetColName)\n      .setFeaturesCol(featuresColName)\n      .setPredictionCol(predictionColName)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "decisionTreeAlgorithm: org.apache.spark.ml.regression.DecisionTreeRegressor = dtr_9b58c8125462\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 5,
+      "time" : "Took: 1 second 785 milliseconds, at 2017-10-5 15:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "BDAE8309B3E049C0842A7F156AF4C6CF"
+    },
+    "cell_type" : "markdown",
+    "source" : "##Step 3 - Configure the Pipeline execution flow\n  1 - extract features using a fector assembler to mesh all of features of interest togheter\n  \n  2 - mount the pipeline stages with the following sequence: feature extraction, algorithm to train the models"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C310763403DC4FAA965B8F51275D0F7B"
+    },
+    "cell_type" : "code",
+    "source" : "val featureCols = Array(\"hour_of_day\", \"week_of_month\", \"avg_response_time\",\"no_credit\", \"errors\", \"total_attempts\")\n\nval vectorAssembler = new VectorAssembler()\n                                .setInputCols(featureCols)\n                                .setOutputCol(featuresColName)\n\nval pipeline = new Pipeline()\n                  .setStages(Array(vectorAssembler, decisionTreeAlgorithm))",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "featureCols: Array[String] = Array(hour_of_day, week_of_month, avg_response_time, no_credit, errors, total_attempts)\nvectorAssembler: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_f137720f964c\npipeline: org.apache.spark.ml.Pipeline = pipeline_fd9dfe84b4bc\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 6,
+      "time" : "Took: 1 second 626 milliseconds, at 2017-10-5 15:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "744D354D259F4782BECA93D5D42AA30D"
+    },
+    "cell_type" : "markdown",
+    "source" : "##Step 4 - Setup de evaluation stage\n\nIn this step will use the hiperparametrization to get the best set of parameters for our model, using the RMSE as the evaluation criteria.\n"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "F5FC60DD462C4E2A85950CCB41CFCE9B"
+    },
+    "cell_type" : "code",
+    "source" : "val paramGrid = new ParamGridBuilder()\n     .addGrid(decisionTreeAlgorithm.maxDepth, Array(7, 8, 9))\n     .addGrid(decisionTreeAlgorithm.maxBins, (25 to 30).toList)\n     .build()\n\n// Select (prediction, true label) and compute test error.\nval evaluator = new RegressionEvaluator()\n     .setLabelCol(targetColName)\n     .setPredictionCol(predictionColName)\n     .setMetricName(\"rmse\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "paramGrid: Array[org.apache.spark.ml.param.ParamMap] =\nArray({\n\tdtr_9b58c8125462-maxBins: 25,\n\tdtr_9b58c8125462-maxDepth: 7\n}, {\n\tdtr_9b58c8125462-maxBins: 25,\n\tdtr_9b58c8125462-maxDepth: 8\n}, {\n\tdtr_9b58c8125462-maxBins: 25,\n\tdtr_9b58c8125462-maxDepth: 9\n}, {\n\tdtr_9b58c8125462-maxBins: 26,\n\tdtr_9b58c8125462-maxDepth: 7\n}, {\n\tdtr_9b58c8125462-maxBins: 26,\n\tdtr_9b58c8125462-maxDepth: 8\n}, {\n\tdtr_9b58c8125462-maxBins: 26,\n\tdtr_9b58c8125462-maxDepth: 9\n}, {\n\tdtr_9b58c8125462-maxBins: 27,\n\tdtr_9b58c8125462-maxDepth: 7\n}, {\n\tdtr_9b58c8125462-maxBins: 27,\n\tdtr_9b58c8125462-maxDepth: 8\n}, {\n\tdtr_9b58c8125462-maxBins: 27,\n\tdtr_9b58c8125462-maxDepth: 9\n}, {\n\tdtr_9b58c8125462-maxBins: 28,\n\tdtr_9b58c8125462-maxDepth: 7\n}, {\n\tdtr_9b58c8125462-maxBins: 28,\n\tdtr_9b58c8125462-maxDepth: 8\n}, {\n\tdtr_9b5..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 7,
+      "time" : "Took: 1 second 670 milliseconds, at 2017-10-5 15:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "4AC670B73792468582D2CB09F5874313"
+    },
+    "cell_type" : "markdown",
+    "source" : "Time to tie every thing togheter, the model, pipeline, paramgrid and selected evaluator. \nApache Spark provides an object to deal with all of these elements, train and return the best model we can get.\n\nIntroducing the TrainValidationSplit."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "C4D5D51A0A7A46BA84F8AC9E0CCF236C"
+    },
+    "cell_type" : "code",
+    "source" : "val trainValidationSplit = new TrainValidationSplit()\n     .setEstimator(pipeline)\n     .setEvaluator(evaluator)\n     .setEstimatorParamMaps(paramGrid)\n     .setSeed(42)\n     // 80% of the data will be used for training and the remaining 20% for validation.\n     .setTrainRatio(0.8)\n\ntrainValidationSplit.explainParams",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "trainValidationSplit: org.apache.spark.ml.tuning.TrainValidationSplit = tvs_d1a05e41d9fe\nres11: String =\nestimator: estimator for selection (current: pipeline_fd9dfe84b4bc)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@5278466d)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_f7ae86e9073a)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (>= 0 && <= 1) (default: 0.75, current: 0.8)\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "estimator: estimator for selection (current: pipeline_fd9dfe84b4bc)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@5278466d)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_f7ae86e9073a)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (&gt;= 0 &amp;&amp; &lt;= 1) (default: 0.75, current: 0.8)"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 8,
+      "time" : "Took: 1 second 945 milliseconds, at 2017-10-5 15:54"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "88FE030D411F4AE99F231CDDAB741450"
+    },
+    "cell_type" : "markdown",
+    "source" : "##Step 5 - Time to train the model"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "394A6F29E21448D0BD06607CDC0A141A"
+    },
+    "cell_type" : "code",
+    "source" : "var Array(trainingData, testData) = rawDataFrame.randomSplit(Array(0.8, 0.2), seed = 42)\n\n//train a model\nval model = trainValidationSplit.fit(trainingData)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "trainingData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntestData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\nmodel: org.apache.spark.ml.tuning.TrainValidationSplitModel = tvs_d1a05e41d9fe\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 24,
+      "time" : "Took: 22 seconds 58 milliseconds, at 2017-10-5 16:31"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "E1976D66220544908CC52E0D20C05F7D"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Step 6 - Evaluate  the results"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "presentation" : {
+        "tabs_state" : "{\n  \"tab_id\": \"#tab520203358-0\"\n}",
+        "pivot_chart_state" : "{\n  \"hiddenAttributes\": [],\n  \"menuLimit\": 200,\n  \"cols\": [],\n  \"rows\": [],\n  \"vals\": [],\n  \"exclusions\": {},\n  \"inclusions\": {},\n  \"unusedAttrsVertical\": 85,\n  \"autoSortUnusedAttrs\": false,\n  \"inclusionsInfo\": {},\n  \"aggregatorName\": \"List Unique Values\",\n  \"rendererName\": \"Table\"\n}"
+      },
+      "id" : "40E5217E1DB248929E990C6CFA24DFEB"
+    },
+    "cell_type" : "code",
+    "source" : "val bestModel = model.bestModel.asInstanceOf[PipelineModel].stages(1).asInstanceOf[DecisionTreeRegressionModel]\nval rmse = model.validationMetrics.min\nprintln(s\"maxDepth: ${bestModel.getMaxDepth}, maxBins: ${bestModel.getMaxBins}, RMSE: $rmse\")\n\n// get all errors for debug purpose\n//model.getEstimatorParamMaps.zip(model.validationMetrics)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "maxDepth: 8, maxBins: 25, RMSE: 0.05811031196697114\nbestModel: org.apache.spark.ml.regression.DecisionTreeRegressionModel = DecisionTreeRegressionModel (uid=dtr_9b58c8125462) of depth 8 with 205 nodes\nrmse: Double = 0.05811031196697114\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 25,
+      "time" : "Took: 2 seconds 1 millisecond, at 2017-10-5 16:31"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "A8B86693A0EC444D8834585BD1CB724A"
+    },
+    "cell_type" : "markdown",
+    "source" : "great! Now we have the best model in our hands!\n\n**For a matter of curiosity, lets calculate the accuracy as well**"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "A119697CF8814DC194C4CEC991A6682E"
+    },
+    "cell_type" : "code",
+    "source" : "val calculateAcc = (expected: Double, predicted: Double) => {\n   val error = (expected - predicted) / expected\n   if (Math.abs(error) >= 0.015) 0 else 1\n}\n  \nval calcAccuracyUDF = udf(calculateAcc)\nval df = model.transform(testData)\n                       .withColumn(\"prediction\", exp(predictionColName))\n\nval data = df.withColumn(\"result_column\", calcAccuracyUDF(df(\"successful_charges\"), df(\"prediction\")))\nval total = data.count.toDouble\n\n//ilter prediction that got right\nval correct = data.filter(\"result_column = 1\").count.toDouble\nval accuracy = (correct / total) * 100\n\nprintln(s\"total of records: $total, correct: $correct, ACC: $accuracy %\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "total of records: 52.0, correct: 50.0, ACC: 96.15384615384616 %\ncalculateAcc: (Double, Double) => Int = <function2>\ncalcAccuracyUDF: org.apache.spark.sql.expressions.UserDefinedFunction = UserDefinedFunction(<function2>,IntegerType,Some(List(DoubleType, DoubleType)))\ndf: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 10 more fields]\ndata: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 11 more fields]\ntotal: Double = 52.0\ncorrect: Double = 50.0\naccuracy: Double = 96.15384615384616\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 26,
+      "time" : "Took: 2 seconds 253 milliseconds, at 2017-10-5 16:31"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "BDA55E6E7635422CBE5750C6456F8A18"
+    },
+    "cell_type" : "markdown",
+    "source" : "The R^2 (squared) is the proportion of the variance in the dependent variable that is predictable from the independent variable(s). In other workd how much the predicted results can be explained by the features and how much do they are related."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "9B97D623B194448598E9DF5A51108DED"
+    },
+    "cell_type" : "code",
+    "source" : "val r2 = new RegressionEvaluator()\n          .setLabelCol(\"successful_charges\")\n          .setPredictionCol(\"prediction\")\n          .setMetricName(\"r2\")\n          .evaluate(df)\n\nprintln(s\"R2 = $r2\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "R2 = 0.9996845595134211\nr2: Double = 0.9996845595134211\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 27,
+      "time" : "Took: 1 second 482 milliseconds, at 2017-10-5 16:32"
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "CE3A1F5987C44AE080578B994A94ACB1"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Step 7 - Persist and serialize the model"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "D52D2633061E45D58EA46DE69EE56984"
+    },
+    "cell_type" : "code",
+    "source" : "bestModel.write.overwrite.save(ROOT + \"/trained-models-dataframe/success\")",
+    "outputs" : [ ]
+  } ],
+  "nbformat" : 4
+}
