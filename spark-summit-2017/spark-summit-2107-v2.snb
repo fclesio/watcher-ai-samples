@@ -41,8 +41,8 @@
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 28,
-      "time" : "Took: 4 seconds 208 milliseconds, at 2017-10-5 17:4"
+      "execution_count" : 2,
+      "time" : "Took: 1 second 872 milliseconds, at 2017-10-11 7:49"
     } ]
   }, {
     "metadata" : {
@@ -58,19 +58,19 @@
       "id" : "44F9504B37D74EE382D056F71EC5351E"
     },
     "cell_type" : "code",
-    "source" : "val ROOT = \"./notebooks/watcher-ai-samples/spark-summit-2017\"\n\n//spark notebook already provide me a sparkSession object, ready to use\nval rawDataFrame = sparkSession.read.load(ROOT + \"/sbs-dataframe\")\n                               .withColumn(\"successful_charges_log\", log($\"successful_charges\"))\n\nval targetColName  = \"successful_charges_log\"\nval featuresColName = \"features_success\"\nval predictionColName = \"prediction_log\"\n\nrawDataFrame\n.select(s\"carrier_id\", s\"successful_charges\", s\"no_credit\", s\"total_attempts\")\n.show(5)",
+    "source" : "val ROOT = \"./notebooks/watcher-ai-samples/spark-summit-2017\"\n\n//spark notebook already provide me a sparkSession object, ready to use\nval rawDataFrame = sparkSession.read.load(ROOT + \"/sbs-dataframe\")\n                               .withColumn(\"successful_charges_log\", log($\"successful_charges\"))\n\nval targetColName  = \"successful_charges_log\"\nval featuresColName = \"features_success\"\nval predictionColName = \"prediction_log\"\n\nrawDataFrame\n.select(s\"carrier_id\", s\"successful_charges\", s\"no_credit\", s\"errors\", s\"total_attempts\")\n.show(5)",
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "+----------+------------------+------------------+------------------+\n|carrier_id|successful_charges|         no_credit|    total_attempts|\n+----------+------------------+------------------+------------------+\n|         1| 33376.07142857143|1750555.9285714286| 2045742.142857143|\n|         1| 41120.78571428571|         3468767.5|4043648.1428571427|\n|         1| 43242.57142857143| 5191541.142857143| 6045361.642857143|\n|         1| 58116.72527472527| 6593962.912087912| 7955685.950549451|\n|         1| 59901.08241758242| 7927643.412087912| 9793410.593406593|\n+----------+------------------+------------------+------------------+\nonly showing top 5 rows\n\nROOT: String = ./notebooks/watcher-ai-samples/spark-summit-2017\nrawDataFrame: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntargetColName: String = successful_charges_log\nfeaturesColName: String = features_success\npredictionColName: String = prediction_log\n"
+      "text" : "+----------+------------------+------------------+------------------+------------------+\n|carrier_id|successful_charges|         no_credit|            errors|    total_attempts|\n+----------+------------------+------------------+------------------+------------------+\n|         1| 33376.07142857143|1750555.9285714286|261810.14285714287| 2045742.142857143|\n|         1| 41120.78571428571|         3468767.5| 533759.8571428572|4043648.1428571427|\n|         1| 43242.57142857143| 5191541.142857143| 810577.9285714286| 6045361.642857143|\n|         1| 58116.72527472527| 6593962.912087912|1303606.3131868131| 7955685.950549451|\n|         1| 59901.08241758242| 7927643.412087912|1805866.0989010988| 9793410.593406593|\n+----------+------------------+------------------+------------------+------------------+\nonly showing top 5 rows\n\nROOT: String = ./notebooks/watcher-ai-samples/spark-summit-2017\nrawDataFrame: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntargetColName: String = successful_charges_log\nfeaturesColName: String = features_success\npredictionColName: String = prediction_log\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 4,
-      "time" : "Took: 3 seconds 172 milliseconds, at 2017-10-5 15:54"
+      "execution_count" : 1,
+      "time" : "Took: 8 seconds 21 milliseconds, at 2017-10-11 7:49"
     } ]
   }, {
     "metadata" : {
@@ -310,7 +310,7 @@
     "metadata" : {
       "trusted" : true,
       "input_collapsed" : false,
-      "collapsed" : false,
+      "collapsed" : true,
       "id" : "D52D2633061E45D58EA46DE69EE56984"
     },
     "cell_type" : "code",
