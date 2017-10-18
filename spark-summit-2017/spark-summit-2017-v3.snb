@@ -42,7 +42,7 @@
       },
       "output_type" : "execute_result",
       "execution_count" : 1,
-      "time" : "Took: 1 second 883 milliseconds, at 2017-10-17 8:40"
+      "time" : "Took: 1 second 621 milliseconds, at 2017-10-18 8:4"
     } ]
   }, {
     "metadata" : {
@@ -69,8 +69,8 @@
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 3,
-      "time" : "Took: 2 seconds 18 milliseconds, at 2017-10-17 9:23"
+      "execution_count" : 2,
+      "time" : "Took: 8 seconds 502 milliseconds, at 2017-10-18 8:20"
     } ]
   }, {
     "metadata" : {
@@ -90,15 +90,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "trainingData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntestData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\nfeatureCols: Array[String] = Array(hour_of_day, week_of_month, avg_response_time, no_credit, errors, total_attempts)\nvectorAssembler: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_63972edb7922\npreparedTrainingData: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 8 more fields]\n"
+      "text" : "trainingData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\ntestData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [carrier_id: int, hour_of_day: int ... 7 more fields]\nfeatureCols: Array[String] = Array(hour_of_day, week_of_month, avg_response_time, no_credit, errors, total_attempts)\nvectorAssembler: org.apache.spark.ml.feature.VectorAssembler = vecAssembler_4b601f846953\npreparedTrainingData: org.apache.spark.sql.DataFrame = [carrier_id: int, hour_of_day: int ... 8 more fields]\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 4,
-      "time" : "Took: 1 second 927 milliseconds, at 2017-10-17 9:23"
+      "execution_count" : 3,
+      "time" : "Took: 2 seconds 9 milliseconds, at 2017-10-18 8:20"
     } ]
   }, {
     "metadata" : {
@@ -118,15 +118,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "import org.apache.spark.ml.regression.LinearRegression\nlrLasso: org.apache.spark.ml.regression.LinearRegression = linReg_8969bbdb1888\nlrRidge: org.apache.spark.ml.regression.LinearRegression = linReg_f37e5db53579\nlrElasticNet: org.apache.spark.ml.regression.LinearRegression = linReg_ca59154788ba\n"
+      "text" : "import org.apache.spark.ml.regression.LinearRegression\nlrLasso: org.apache.spark.ml.regression.LinearRegression = linReg_442adb45f677\nlrRidge: org.apache.spark.ml.regression.LinearRegression = linReg_51b668c65ed1\nlrElasticNet: org.apache.spark.ml.regression.LinearRegression = linReg_1e5017dc87ad\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 6,
-      "time" : "Took: 1 second 85 milliseconds, at 2017-10-17 9:24"
+      "execution_count" : 4,
+      "time" : "Took: 2 seconds 331 milliseconds, at 2017-10-18 8:21"
     } ]
   }, {
     "metadata" : {
@@ -146,15 +146,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "lassoModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_8969bbdb1888\nridgeModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_f37e5db53579\nelasticNetModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_ca59154788ba\nsummaryLassoModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@4eab6e6f\nsummaryRidgeModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@33b2a86f\nsummaryElasticNetModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@2bb6b7ba\n"
+      "text" : "lassoModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_442adb45f677\nridgeModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_51b668c65ed1\nelasticNetModel: org.apache.spark.ml.regression.LinearRegressionModel = linReg_1e5017dc87ad\nsummaryLassoModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@3974ac69\nsummaryRidgeModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@67585225\nsummaryElasticNetModel: org.apache.spark.ml.regression.LinearRegressionTrainingSummary = org.apache.spark.ml.regression.LinearRegressionTrainingSummary@31caf87a\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 7,
-      "time" : "Took: 4 seconds 808 milliseconds, at 2017-10-17 9:25"
+      "execution_count" : 5,
+      "time" : "Took: 7 seconds 426 milliseconds, at 2017-10-18 8:22"
     } ]
   }, {
     "metadata" : {
@@ -174,15 +174,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "decisionTreeAlgorithm: org.apache.spark.ml.regression.DecisionTreeRegressor = dtr_d67d1ed642b5\n"
+      "text" : "decisionTreeAlgorithm: org.apache.spark.ml.regression.DecisionTreeRegressor = dtr_b006589570d1\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 8,
-      "time" : "Took: 965 milliseconds, at 2017-10-17 9:25"
+      "execution_count" : 6,
+      "time" : "Took: 2 seconds 111 milliseconds, at 2017-10-18 8:22"
     } ]
   }, {
     "metadata" : {
@@ -202,15 +202,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "pipeline: org.apache.spark.ml.Pipeline = pipeline_90d505f0a680\n"
+      "text" : "pipeline: org.apache.spark.ml.Pipeline = pipeline_9a18a893a5e5\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 10,
-      "time" : "Took: 1 second 354 milliseconds, at 2017-10-17 9:26"
+      "execution_count" : 7,
+      "time" : "Took: 2 seconds 127 milliseconds, at 2017-10-18 8:23"
     } ]
   }, {
     "metadata" : {
@@ -230,15 +230,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "paramGrid: Array[org.apache.spark.ml.param.ParamMap] =\nArray({\n\tdtr_d67d1ed642b5-maxBins: 25,\n\tdtr_d67d1ed642b5-maxDepth: 7\n}, {\n\tdtr_d67d1ed642b5-maxBins: 25,\n\tdtr_d67d1ed642b5-maxDepth: 8\n}, {\n\tdtr_d67d1ed642b5-maxBins: 25,\n\tdtr_d67d1ed642b5-maxDepth: 9\n}, {\n\tdtr_d67d1ed642b5-maxBins: 26,\n\tdtr_d67d1ed642b5-maxDepth: 7\n}, {\n\tdtr_d67d1ed642b5-maxBins: 26,\n\tdtr_d67d1ed642b5-maxDepth: 8\n}, {\n\tdtr_d67d1ed642b5-maxBins: 26,\n\tdtr_d67d1ed642b5-maxDepth: 9\n}, {\n\tdtr_d67d1ed642b5-maxBins: 27,\n\tdtr_d67d1ed642b5-maxDepth: 7\n}, {\n\tdtr_d67d1ed642b5-maxBins: 27,\n\tdtr_d67d1ed642b5-maxDepth: 8\n}, {\n\tdtr_d67d1ed642b5-maxBins: 27,\n\tdtr_d67d1ed642b5-maxDepth: 9\n}, {\n\tdtr_d67d1ed642b5-maxBins: 28,\n\tdtr_d67d1ed642b5-maxDepth: 7\n}, {\n\tdtr_d67d1ed642b5-maxBins: 28,\n\tdtr_d67d1ed642b5-maxDepth: 8\n}, {\n\tdtr_d67..."
+      "text" : "paramGrid: Array[org.apache.spark.ml.param.ParamMap] =\nArray({\n\tdtr_b006589570d1-maxBins: 25,\n\tdtr_b006589570d1-maxDepth: 7\n}, {\n\tdtr_b006589570d1-maxBins: 25,\n\tdtr_b006589570d1-maxDepth: 8\n}, {\n\tdtr_b006589570d1-maxBins: 25,\n\tdtr_b006589570d1-maxDepth: 9\n}, {\n\tdtr_b006589570d1-maxBins: 26,\n\tdtr_b006589570d1-maxDepth: 7\n}, {\n\tdtr_b006589570d1-maxBins: 26,\n\tdtr_b006589570d1-maxDepth: 8\n}, {\n\tdtr_b006589570d1-maxBins: 26,\n\tdtr_b006589570d1-maxDepth: 9\n}, {\n\tdtr_b006589570d1-maxBins: 27,\n\tdtr_b006589570d1-maxDepth: 7\n}, {\n\tdtr_b006589570d1-maxBins: 27,\n\tdtr_b006589570d1-maxDepth: 8\n}, {\n\tdtr_b006589570d1-maxBins: 27,\n\tdtr_b006589570d1-maxDepth: 9\n}, {\n\tdtr_b006589570d1-maxBins: 28,\n\tdtr_b006589570d1-maxDepth: 7\n}, {\n\tdtr_b006589570d1-maxBins: 28,\n\tdtr_b006589570d1-maxDepth: 8\n}, {\n\tdtr_b00..."
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 11,
-      "time" : "Took: 1 second 251 milliseconds, at 2017-10-17 9:27"
+      "execution_count" : 8,
+      "time" : "Took: 2 seconds 114 milliseconds, at 2017-10-18 8:24"
     } ]
   }, {
     "metadata" : {
@@ -258,15 +258,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "trainValidationSplit: org.apache.spark.ml.tuning.TrainValidationSplit = tvs_609e19ef32e2\nres14: String =\nestimator: estimator for selection (current: pipeline_90d505f0a680)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@66b9fecf)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_2ca2e46c177c)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (>= 0 && <= 1) (default: 0.75, current: 0.8)\n"
+      "text" : "trainValidationSplit: org.apache.spark.ml.tuning.TrainValidationSplit = tvs_3a3b1fd70e08\nres10: String =\nestimator: estimator for selection (current: pipeline_9a18a893a5e5)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@7c307401)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_d8154e3a6c2c)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (>= 0 && <= 1) (default: 0.75, current: 0.8)\n"
     }, {
       "metadata" : { },
       "data" : {
-        "text/html" : "estimator: estimator for selection (current: pipeline_90d505f0a680)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@66b9fecf)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_2ca2e46c177c)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (&gt;= 0 &amp;&amp; &lt;= 1) (default: 0.75, current: 0.8)"
+        "text/html" : "estimator: estimator for selection (current: pipeline_9a18a893a5e5)\nestimatorParamMaps: param maps for the estimator (current: [Lorg.apache.spark.ml.param.ParamMap;@7c307401)\nevaluator: evaluator used to select hyper-parameters that maximize the validated metric (current: regEval_d8154e3a6c2c)\nseed: random seed (default: -1772833110, current: 42)\ntrainRatio: ratio between training set and validation set (&gt;= 0 &amp;&amp; &lt;= 1) (default: 0.75, current: 0.8)"
       },
       "output_type" : "execute_result",
-      "execution_count" : 12,
-      "time" : "Took: 2 seconds 612 milliseconds, at 2017-10-17 9:29"
+      "execution_count" : 9,
+      "time" : "Took: 1 second 650 milliseconds, at 2017-10-18 8:25"
     } ]
   }, {
     "metadata" : {
@@ -284,17 +284,25 @@
     "cell_type" : "code",
     "source" : "//train a model\nval model = trainValidationSplit.fit(trainingData)",
     "outputs" : [ {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 10,
+      "time" : "Took: 20 seconds 900 milliseconds, at 2017-10-18 8:26"
+    }, {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "model: org.apache.spark.ml.tuning.TrainValidationSplitModel = tvs_609e19ef32e2\n"
+      "text" : "model: org.apache.spark.ml.tuning.TrainValidationSplitModel = tvs_3a3b1fd70e08\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 13,
-      "time" : "Took: 18 seconds 101 milliseconds, at 2017-10-17 9:30"
+      "execution_count" : 11,
+      "time" : "Took: 18 seconds 374 milliseconds, at 2017-10-18 8:26"
     } ]
   }, {
     "metadata" : {
@@ -318,15 +326,15 @@
     "outputs" : [ {
       "name" : "stdout",
       "output_type" : "stream",
-      "text" : "maxDepth: 8, maxBins: 29, RMSE: 0.05863413562165563\nbestModel: org.apache.spark.ml.regression.DecisionTreeRegressionModel = DecisionTreeRegressionModel (uid=dtr_d67d1ed642b5) of depth 8 with 189 nodes\nrmse: Double = 0.05863413562165563\n"
+      "text" : "maxDepth: 8, maxBins: 29, RMSE: 0.05863413562165563\nbestModel: org.apache.spark.ml.regression.DecisionTreeRegressionModel = DecisionTreeRegressionModel (uid=dtr_b006589570d1) of depth 8 with 189 nodes\nrmse: Double = 0.05863413562165563\n"
     }, {
       "metadata" : { },
       "data" : {
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 14,
-      "time" : "Took: 1 second 395 milliseconds, at 2017-10-17 9:30"
+      "execution_count" : 12,
+      "time" : "Took: 1 second 624 milliseconds, at 2017-10-18 8:26"
     } ]
   }, {
     "metadata" : {
@@ -353,8 +361,8 @@
         "text/html" : ""
       },
       "output_type" : "execute_result",
-      "execution_count" : 15,
-      "time" : "Took: 4 seconds 278 milliseconds, at 2017-10-17 9:31"
+      "execution_count" : 13,
+      "time" : "Took: 3 seconds 355 milliseconds, at 2017-10-18 8:26"
     } ]
   }, {
     "metadata" : {
@@ -371,15 +379,7 @@
     },
     "cell_type" : "code",
     "source" : "bestModel.write.overwrite.save(ROOT + \"/trained-models-dataframe/success\")",
-    "outputs" : [ {
-      "metadata" : { },
-      "data" : {
-        "text/html" : ""
-      },
-      "output_type" : "execute_result",
-      "execution_count" : 16,
-      "time" : "Took: 2 seconds 77 milliseconds, at 2017-10-17 9:31"
-    } ]
+    "outputs" : [ ]
   } ],
   "nbformat" : 4
 }
